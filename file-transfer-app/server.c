@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAXBUFLEN 100
 
@@ -19,7 +20,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-
+    memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
