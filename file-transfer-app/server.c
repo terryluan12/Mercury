@@ -6,13 +6,13 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MAXBUFLEN 100
+#define MAXBUFLEN 256
 
 int main(int argc, char *argv[]){
     char buf[MAXBUFLEN];
     struct addrinfo hints, *servinfo;
     struct sockaddr_storage their_addr;
-    socklen_t addr_len;
+    socklen_t their_addr_len;
     int port, rv;
 
     if(argc != 2){
@@ -34,19 +34,34 @@ int main(int argc, char *argv[]){
 
     if(bind(sockfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1){
         close(sockfd);
-        printf("ERROR IN BIND");
+        printf("ERROR IN BIND\n");
         return -1;
     }
 
-    printf("listener: waiting to recvfrom...\n");
+    while(1){
+        printf("listener: waiting to recvfrom...\n");
 
-    int numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
-                            (struct sockaddr *)&their_addr, &addr_len);
+        int numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
+                                (struct sockaddr *)&their_addr, &their_addr_len);
 
-    if(numbytes == -1){
-        printf("NOTHING RECEIVED");
-        close(sockfd);
-        return -1;
+        if(numbytes == -1){
+            printf("NOTHING RECEIVED");
+            close(sockfd);
+            return -1;
+        }
+
+
+        buf[numbytes] = '\0';
+        printf("listener: got packet, %d bytes long\n", numbytes);
+        printf("Got a %s\n", buf);
+
+
+        if(strcmp(buf, "ftp") == 0){
+            numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&their_addr, their_addr_len);
+        }else{
+            numbytes = sendto(sockfd, "no", 2, 0, (struct sockaddr *)&their_addr, their_addr_len);
+        }
+        printf("talker: sent %d bytes back\n", numbytes);
     }
     close(sockfd);
     printf("everything good. Closing");
