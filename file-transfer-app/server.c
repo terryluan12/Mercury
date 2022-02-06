@@ -12,6 +12,7 @@
 #define MAXBUFLEN 256
 #define MAXPACKET 2000
 
+
 /*
  * Function: server <UDP listen port>
  * -------------------------------------------------------
@@ -26,6 +27,7 @@ int main(int argc, char *argv[]){
     socklen_t their_addr_len;
     int success;
     char read_packet[2000];
+
 
     // one argument must be provided
     if(argc != 2){
@@ -78,12 +80,15 @@ int main(int argc, char *argv[]){
         // if the server gets "ftp", send a "yes" back. 
         // else send back "no"
         if(strcmp(buf, "ftp") == 0){
+
 		printf("trying to send yes\n");
+
             numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&their_addr, their_addr_len);
         }else{
             numbytes = sendto(sockfd, "no", 2, 0, (struct sockaddr *)&their_addr, their_addr_len);
         }
         printf("talker: sent %d bytes back\n", numbytes);
+
 	//printf("error: %s\n", xn_geterror_string(xn_getlasterror()));
 
 	struct packet first_pack;
@@ -179,4 +184,6 @@ int main(int argc, char *argv[]){
 
 
     
+
 }
+

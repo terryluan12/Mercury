@@ -8,6 +8,7 @@
 #include <time.h>
 #include "header.h"
 
+
 #define MAXBUFLEN 100
 
 /*
@@ -72,13 +73,14 @@ int main(int argc, char *argv[]){
         if(strcmp(buf, ftppt) == 0){
             printf("first command must be ftp. Cannot be %st\n", buf);
             return -1;
+
         }else if(strcmp(buf, "-1") == 0){
             break;
         }
 
         scanf("%s", buf);
 
-		clock_t timer;
+	clock_t timer;
 
         // if the file exists, then send "ftp" to the server. Otherwise quit
         if(access(buf, F_OK) != 0){
@@ -106,6 +108,7 @@ int main(int argc, char *argv[]){
 
 		printf("ROUND TRIP TIME: %f microsec\n", roundtriptime);
 
+
         printf("listener: got packet, %d bytes long\n", numbytes);
         printf("Got a %s\n", buf);
 
@@ -113,6 +116,7 @@ int main(int argc, char *argv[]){
         if(strcmp(buf, "yes") == 0){
             printf("A file transfer can start.\n");
         }else{
+
            	printf("File transfer cannot occur\n");
        		return -1;
        	}
@@ -209,9 +213,11 @@ int main(int argc, char *argv[]){
             	i++;
         	}
 		}
+
     }
     printf("closing\n");
     close(sockfd);
     return 0;
 
 }
+
