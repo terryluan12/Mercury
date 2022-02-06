@@ -6,8 +6,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include "header.h"
 
+struct node {
+	char data[1000];
+	struct node * next;
+	int num_bytes;
+};
 
 #define MAXBUFLEN 100
 
