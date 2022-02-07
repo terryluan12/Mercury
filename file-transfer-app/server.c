@@ -164,8 +164,8 @@ int main(int argc, char *argv[]){
 		FILE * file = fopen(filename, "wb");
 		fwrite(first_pack.filedata, sizeof(char), first_pack.size, file);
 		
-		numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&return_addr, their_addr_len);
-		printf("sent yes, should be %d bytes\n", numbytes);
+		//numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&return_addr, their_addr_len);
+		//printf("sent yes, should be %d bytes\n", numbytes);
 		
 		int frags_read = first_pack.frag_no;
 		int total_frags = first_pack.total_frag;
@@ -202,12 +202,15 @@ int main(int argc, char *argv[]){
 			memcpy(curr_pack.filedata, (void *) (fourth_str + 1), 1000);
 			
 			//int good = 1;
+			/*
 			if (curr_pack.frag_no != frags_read + 1 || total_frags != curr_pack.total_frag || strcmp(filename, curr_pack.filename) != 0) {
 				numbytes = sendto(sockfd, "no", 2, 0, (struct sockaddr *)&their_addr, their_addr_len);
 			} else {
 				numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&their_addr, their_addr_len);
 				frags_read++;
 			}
+			*/
+			frags_read++;
 	}
 	fclose(file);
 	printf("finished creating file\n");

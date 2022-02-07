@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     struct in_addr servaddr;
     char buf[MAXBUFLEN];
 	char file_name[MAXBUFLEN];
-    char ftppt[3] = "ftp";
+    char ftppt[4] = "ftp";
     int numbytes;
 
     // only works if the user gives 2 arguments
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]){
         scanf("%s", buf);
 
         // check if first word input is "ftp". If not, exit.
+        printf("result of strcmp: %s %d chars long\n", buf, strlen(buf));
         if(strcmp(buf, ftppt) != 0){
             printf("first command must be ftp. Cannot be %s\n", buf);
             return -1;
@@ -140,14 +141,13 @@ int main(int argc, char *argv[]){
 		struct node * new = malloc(sizeof(struct node));
 		head = new;
 		int bytes_read = fread(new -> data, sizeof(char), 1000, file);
-		while (bytes_read != 0) {
-				
+		while (bytes_read != 0) {	
 			//new -> data = data;
 			new -> num_bytes = bytes_read;
 			num_packets++;
 			new -> next = NULL;
 			
-			curr = malloc(sizeof(struct node));
+			//curr = malloc(sizeof(struct node));
 			if (first != 1) {
 				curr -> next= new;
 			} else {
