@@ -31,8 +31,8 @@ int main(int argc, char *argv[]){
     char buf[MAXBUFLEN];
     struct addrinfo hints, *servinfo;
     struct sockaddr_storage their_addr;
-	struct sockaddr_in *return_addr;
-	return_addr = malloc(sizeof(struct sockaddr_in));
+    struct sockaddr_in *return_addr;
+    return_addr = malloc(sizeof(struct sockaddr_in));
     socklen_t their_addr_len;
 	their_addr_len = sizeof(their_addr);
     int success;
@@ -90,9 +90,9 @@ int main(int argc, char *argv[]){
         // else send back "no"
         if(strcmp(buf, "ftp") == 0){
 
-			printf("trying to send yes to %s\n", their_addr);
+		printf("trying to send yes to %s\n", their_addr);
 
-			numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)return_addr, their_addr_len);
+		numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)return_addr, their_addr_len);
 
 		
         }else{

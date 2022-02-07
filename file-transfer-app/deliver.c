@@ -189,7 +189,8 @@ int main(int argc, char *argv[]){
 			curr = temp;
 		}
 			
-		for (int i = 0; i < num_packets; i++) {
+		int i = 0;
+		while (i < num_packets) {
 			printf("at loop %d\n", i);
 			timer = clock();
 				
@@ -204,7 +205,8 @@ int main(int argc, char *argv[]){
 
 			// wait for a response
 			printf("waiting for response\n");
-			numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
+			/*
+			//numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
 			printf("got response\n");
 			timer = clock() - timer;
 			buf[numbytes] = '\0';
@@ -220,6 +222,8 @@ int main(int argc, char *argv[]){
 			if(strcmp(buf, "yes") == 0){
 				i++;
 			}
+			*/
+			i++;
 		}
 		printf("closing\n");
 		close(sockfd);
