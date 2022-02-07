@@ -82,6 +82,7 @@ int main(int argc, char *argv[]){
         }else if(strcmp(buf, "-1") == 0){
             break;
         }
+        scanf("%s", file_name);
 
 		clock_t timer;
 
@@ -116,7 +117,6 @@ int main(int argc, char *argv[]){
 
 
         printf("listener: got packet, %d bytes long\n", numbytes);
-        printf("Got a %s\n", buf);
 
         // check response
         if(strcmp(buf, "yes") == 0){
@@ -149,15 +149,16 @@ int main(int argc, char *argv[]){
 			num_packets++;
 			new -> next = NULL;
 			
+			curr = malloc(sizeof(struct node));
 			if (first == 1) {
 				curr -> next = new;
 			} else {
 				first = 0;
 			}
-				
 			curr = new;
 			new = malloc(sizeof(struct node));
 			bytes_read = fread(new -> data, sizeof(char), 1000, file);
+			printf("asdfha\n");
 		}	
 				
 		fclose(file);
