@@ -85,8 +85,6 @@ int main(int argc, char *argv[]){
         scanf("%s", file_name);
 
 		clock_t timer;
-
-        
         
         timer = clock();
 
@@ -150,8 +148,8 @@ int main(int argc, char *argv[]){
 			new -> next = NULL;
 			
 			curr = malloc(sizeof(struct node));
-			if (first == 1) {
-				curr -> next = new;
+			if (first != 1) {
+				curr -> next= new;
 			} else {
 				first = 0;
 			}
@@ -169,10 +167,12 @@ int main(int argc, char *argv[]){
 		int buff_size[num_packets];
 			
 		for (int i = 1; i <= num_packets; i++) {
-			char * encapdata;
-			int num_chars = sprintf(encapdata, "%d:%d:%d:%s:", num_packets, i, buf);
+			//printf("at loop %d\n", i);
+			char * encapdata = malloc(sizeof(char) * 100);
 			
-				
+			int num_chars = sprintf(encapdata, "%d:%d:%d:%s:", num_packets, i, curr -> num_bytes, file_name);
+			
+			//printf("passed first\n");
 			memcpy(encapdata + num_chars, curr -> data, curr -> num_bytes);
 				
 			buff_size[i-1] = num_chars + curr -> num_bytes;
@@ -190,6 +190,7 @@ int main(int argc, char *argv[]){
 		}
 			
 		for (int i = 0; i < num_packets; i++) {
+			printf("at loop %d\n", i);
 			timer = clock();
 				
 			numbytes = sendto(sockfd, packets[i], buff_size[i], 0, servinfo->ai_addr, servinfo->ai_addrlen);
@@ -202,7 +203,9 @@ int main(int argc, char *argv[]){
 			//printf("Waiting on response...\n");
 
 			// wait for a response
+			printf("waiting for response\n");
 			numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
+			printf("got response\n");
 			timer = clock() - timer;
 			buf[numbytes] = '\0';
 
