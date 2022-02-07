@@ -1,4 +1,5 @@
 CC=gcc
+CFLAGS=-g
 all: server deliver
 server: server.o
 deliver: deliver.o

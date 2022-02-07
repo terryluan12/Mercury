@@ -8,6 +8,6 @@ struct packet {
 
 struct node {
 	char data[1000];
-	struct node * next;
+	struct node * next = nullptr;
 	int num_bytes;
 };

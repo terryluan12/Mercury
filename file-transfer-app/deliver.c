@@ -27,6 +27,7 @@ int main(int argc, char *argv[]){
     struct addrinfo hints, *servinfo;
     struct in_addr servaddr;
     char buf[MAXBUFLEN];
+	char file_name[MAXBUFLEN];
     char ftppt[3] = "ftp";
     int numbytes;
 
@@ -74,27 +75,28 @@ int main(int argc, char *argv[]){
         scanf("%s", buf);
 
         // check if first word input is "ftp". If not, exit.
-        if(strcmp(buf, ftppt) == 0){
-            printf("first command must be ftp. Cannot be %st\n", buf);
+        if(strcmp(buf, ftppt) != 0){
+            printf("first command must be ftp. Cannot be %s\n", buf);
             return -1;
 
         }else if(strcmp(buf, "-1") == 0){
             break;
         }
 
-        scanf("%s", buf);
+		clock_t timer;
 
-	clock_t timer;
-
-        // if the file exists, then send "ftp" to the server. Otherwise quit
-        if(access(buf, F_OK) != 0){
-            printf("NO FILE FOUND\n");
-            return -1;
-        }
+        
         
         timer = clock();
-			
-     	numbytes = sendto(sockfd, ftppt, 3, 0, servinfo->ai_addr, servinfo->ai_addrlen);
+
+     	// if the file exists, then send "ftp" to the server. Otherwise quit
+        if(access(file_name, F_OK) == 0){
+            numbytes = sendto(sockfd, ftppt, 3, 0, servinfo->ai_addr, servinfo->ai_addrlen);	
+            if(numbytes == -1){
+                perror("COULDN'T SEND\n");
+                return -1;
+            }
+        }
         if(numbytes == -1){
         	perror("COULDN'T SEND\n");
         	return -1;
@@ -124,13 +126,11 @@ int main(int argc, char *argv[]){
            	printf("File transfer cannot occur\n");
        		return -1;
        	}
-        
         //read file data
-		FILE *file = fopen(buf, "rb");
-			
+		FILE *file = fopen(file_name, "rb");
 		if (file == NULL) 
 			return -1;
-			
+		
 		//char data[1000];
 		int num_packets = 0;
 			
@@ -159,26 +159,26 @@ int main(int argc, char *argv[]){
 			new = malloc(sizeof(struct node));
 			bytes_read = fread(new -> data, sizeof(char), 1000, file);
 		}	
+				
+		fclose(file);
+		free(new);
+				
+		curr = head;
+		char * packets[num_packets];
+		int buff_size[num_packets];
 			
-	fclose(file);
-	free(new);
+		for (int i = 1; i <= num_packets; i++) {
+			char * encapdata;
+			int num_chars = sprintf(encapdata, "%d:%d:%d:%s:", num_packets, i, buf);
 			
-	curr = head;
-	char * packets[num_packets];
-	int buff_size[num_packets];
-		
-	for (int i = 1; i <= num_packets; i++) {
-		char * encapdata;
-		int num_chars = sprintf(encapdata, "%d:%d:%d:%s:", num_packets, i, buf);
-		
-			
-		memcpy(encapdata + num_chars, curr -> data, curr -> num_bytes);
-			
-		buff_size[i-1] = num_chars + curr -> num_bytes;
-			
-		packets[i-1] = encapdata;
-		curr = curr -> next;
-	}
+				
+			memcpy(encapdata + num_chars, curr -> data, curr -> num_bytes);
+				
+			buff_size[i-1] = num_chars + curr -> num_bytes;
+				
+			packets[i-1] = encapdata;
+			curr = curr -> next;
+		}
 
 		//free all memory
 		curr = head;
@@ -187,41 +187,39 @@ int main(int argc, char *argv[]){
 			free(curr);
 			curr = temp;
 		}
-		
-	for (int i = 0; i < num_packets; i++) {
-		timer = clock();
 			
-     		numbytes = sendto(sockfd, packets[i], buff_size[i], 0, servinfo->ai_addr, servinfo->ai_addrlen);
-        	if(numbytes == -1){
-        		perror("COULDN'T SEND\n");
-        		return -1;
-        	}
-        
-        	//printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
-        	//printf("Waiting on response...\n");
+		for (int i = 0; i < num_packets; i++) {
+			timer = clock();
+				
+			numbytes = sendto(sockfd, packets[i], buff_size[i], 0, servinfo->ai_addr, servinfo->ai_addrlen);
+			if(numbytes == -1){
+				perror("COULDN'T SEND\n");
+				return -1;
+			}
+		
+			//printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
+			//printf("Waiting on response...\n");
 
-        	// wait for a response
-        	numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
+			// wait for a response
+			numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
 			timer = clock() - timer;
-        	buf[numbytes] = '\0';
+			buf[numbytes] = '\0';
 
 			double roundtriptime = ((double) timer)/(CLOCKS_PER_SEC/1000000);
 
 			printf("ROUND TRIP TIME: %f microsec\n", roundtriptime);
 
-        	printf("listener: got packet, %d bytes long\n", numbytes);
-        	printf("Got a %s\n", buf);
+			printf("listener: got packet, %d bytes long\n", numbytes);
+			printf("Got a %s\n", buf);
 
-        	// check response
-        	if(strcmp(buf, "yes") == 0){
-            	i++;
-        	}
+			// check response
+			if(strcmp(buf, "yes") == 0){
+				i++;
+			}
 		}
-
-    }
-    printf("closing\n");
-    close(sockfd);
-    return 0;
-
+		printf("closing\n");
+		close(sockfd);
+		return 0;
+	}
 }
 
