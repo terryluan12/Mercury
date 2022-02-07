@@ -155,11 +155,14 @@ int main(int argc, char *argv[]){
 			}
 			curr = new;
 			new = malloc(sizeof(struct node));
+			printf("sus thing\n");
 			bytes_read = fread(new -> data, sizeof(char), 1000, file);
+			printf("sus thing passed\n");
 			printf("asdfha\n");
 		}	
 				
 		fclose(file);
+		printf("here\n");
 		free(new);
 				
 		curr = head;
@@ -168,7 +171,7 @@ int main(int argc, char *argv[]){
 			
 		for (int i = 1; i <= num_packets; i++) {
 			//printf("at loop %d\n", i);
-			char * encapdata = malloc(sizeof(char) * 100);
+			char * encapdata = malloc(sizeof(char) * 2000);
 			
 			int num_chars = sprintf(encapdata, "%d:%d:%d:%s:", num_packets, i, curr -> num_bytes, file_name);
 			
