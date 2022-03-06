@@ -161,7 +161,7 @@ int main(int argc, char *argv[]){
 		char * filename = first_pack.filename;
 		
 		//printf("file name is %s\n", filename);
-		FILE * file = fopen(filename, "wb");
+		FILE * file = fopen("test.jpg", "wb");
 		fwrite(first_pack.filedata, sizeof(char), first_pack.size, file);
 		
 		//numbytes = sendto(sockfd, "yes", 3, 0, (struct sockaddr *)&return_addr, their_addr_len);
@@ -173,6 +173,7 @@ int main(int argc, char *argv[]){
 		struct packet curr_pack;
 		
 		while (frags_read < total_frags) {
+
 			numbytes = recvfrom(sockfd, read_packet, MAXPACKET, 0, (struct sockaddr *)return_addr, &their_addr_len);
 			//get name of file
 			//printf("read packet: %s\n", read_packet);
@@ -215,8 +216,9 @@ int main(int argc, char *argv[]){
 			//printf("filename is %s\n", curr_pack.filename);
 			
 			//first_pack.filename = malloc(1000);
+			memcpy(first_pack.filedata, (void *) (fourth_str + 1), 1000);
+			fwrite(first_pack.filedata, sizeof(char), first_pack.size, file);
 
-			memcpy(curr_pack.filedata, (void *) (fourth_str + 1), 1000);
 		
 			
 			
