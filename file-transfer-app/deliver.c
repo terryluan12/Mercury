@@ -14,6 +14,8 @@ struct node {
 };
 
 #define MAXBUFLEN 100
+#define ALPHA 0.125
+#define BETA 0.25
 
 /*
  * Function: deliver <server address> <server port number>
@@ -30,6 +32,11 @@ int main(int argc, char *argv[]){
 	char file_name[MAXBUFLEN];
     char ftppt[4] = "ftp";
     int numbytes;
+    
+    double estimate_rtt = 0;
+    double sample_rtt = 0;
+    double dev_rtt = 0;
+    int timeout_rtt = 0;
 
     // only works if the user gives 2 arguments
     if (argc != 3){
@@ -68,6 +75,10 @@ int main(int argc, char *argv[]){
         printf("COULDN'T FIND SOCKET");
         return -1;
     }
+
+	
+	
+	//readsfds = emptyfds;
 
     // go into a continuous loop as commands can be input
     while(1){
@@ -111,6 +122,8 @@ int main(int argc, char *argv[]){
         buf[numbytes] = '\0';
 
 		double roundtriptime = ((double) timer)/(CLOCKS_PER_SEC/1000000);
+		estimate_rtt = roundtriptime;
+		timeout_rtt = estimate_rtt;
 
 		printf("ROUND TRIP TIME: %f microsec\n", roundtriptime);
 
@@ -155,10 +168,7 @@ int main(int argc, char *argv[]){
 			}
 			curr = new;
 			new = malloc(sizeof(struct node));
-			printf("sus thing\n");
 			bytes_read = fread(new -> data, sizeof(char), 1000, file);
-			printf("sus thing passed\n");
-			printf("asdfha\n");
 		}	
 				
 		fclose(file);
@@ -202,31 +212,51 @@ int main(int argc, char *argv[]){
 				perror("COULDN'T SEND\n");
 				return -1;
 			}
-		
-			//printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
-			//printf("Waiting on response...\n");
-
-			// wait for a response
-			printf("waiting for response\n");
-			/*
-			//numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
-			printf("got response\n");
+			
+			fd_set readfds;
+			struct timeval timeout;
+			
+			FD_ZERO(&readfds);
+			FD_SET(sockfd, &readfds);
+			timeout.tv_sec = 0;
+			timeout.tv_usec = timeout_rtt;
+			
+			timer = clock();
+			int ret = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
 			timer = clock() - timer;
+			
+			if (ret == -1) {
+				printf("error trying to use select\n");
+			}
+			
+
+			if(FD_ISSET(sockfd, &readfds) == 0) {
+				//send packet again
+				continue;
+			}
+			
+			numbytes = recvfrom(sockfd, &buf, MAXBUFLEN-1, 0, servinfo->ai_addr, (socklen_t *) &servinfo->ai_addrlen);
+			
+			//printf("got response\n");
+			
 			buf[numbytes] = '\0';
 
-			double roundtriptime = ((double) timer)/(CLOCKS_PER_SEC/1000000);
+			sample_rtt = ((double) timer)/(CLOCKS_PER_SEC/1000000);
+			estimate_rtt = (1 - ALPHA) * estimate_rtt + ALPHA * sample_rtt;
+			dev_rtt = (1 - BETA) * dev_rtt + BETA * abs(sample_rtt - estimate_rtt);
+			timeout_rtt = estimate_rtt + 4 * dev_rtt;
 
-			printf("ROUND TRIP TIME: %f microsec\n", roundtriptime);
+			printf("ROUND TRIP TIME: %f microsec\n", sample_rtt);
 
 			printf("listener: got packet, %d bytes long\n", numbytes);
 			printf("Got a %s\n", buf);
 
 			// check response
-			if(strcmp(buf, "yes") == 0){
+			if(atoi(buf) == i + 2){
 				i++;
 			}
-			*/
-			i++;
+			
+			//i++;
 		}
 		printf("closing\n");
 		close(sockfd);
