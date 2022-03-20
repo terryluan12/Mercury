@@ -121,7 +121,8 @@ void *mainLoop(void *arg){
                 if(sessionIDLoc != -1){
                     messagesend->type = JN_NAK;
                     // TODO Sona can you find a less janky way to add the error dataaaaa
-                    // strcpy(messagesend->data, (char*)atoi(messagerecv->data) + "Already in a Session.");
+                    strcpy(messagesend->data, messagerecv->data);
+                    strcat(messagesend -> data, " Already in a session.");
 
                 }else{
                     int inSession = 0;
@@ -155,11 +156,13 @@ void *mainLoop(void *arg){
                     if(!isValidSession){
                         // TODO here too plzzz
                         messagesend->type = JN_NAK;
-                        // strcpy(messagesend->data, (char*)atoi(messagerecv->data) + "Invalid Session.");
+                        strcpy(messagesend->data, (char*)atoi(messagerecv->data));
+                        strcat(messagesend -> data, " Invalid session.");
                     }else if(inSession){
                         // TODO here too plzzz
                         messagesend->type = JN_NAK;
-                        // strcpy(messagesend->data, (char*)atoi(messagerecv->data) + "Session already joined.");
+                        strcpy(messagesend->data, (char*)atoi(messagerecv->data));
+                        strcat(messagesend -> data, " Session already joined.");
                     }else{
 
                         // Find the last user in the session
@@ -326,7 +329,7 @@ int main(int argc, char **argv){
 
     // Opening the list of possible users.
     FILE *fptr;
-    fptr = fopen(".\\users.txt", "r");
+    fptr = fopen("users.txt", "r");
 
     // iterate through the userlist and add them to 
     i = 0;

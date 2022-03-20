@@ -30,25 +30,29 @@ void list(int *sockfd) {
 }
 
 void login(char *message, int *sockfd){
-    char *clientID, *password, *serverIP, *serverPort;
+    char clientID[20], password[100], serverIP[15], serverPort[10];
     char buf[MAXBUFLEN];
     int numbytes;
 
     char * str1 = strchr(message, ' ');
-    int pos1 = str1 - message;
-    memcpy(clientID, message, pos1);
 
-    char *str2 = strchr(str1, ' ');
-    int pos2 = str2 - str1;
-    memcpy(password, str1, pos2);
+	printf("message: %s\n", message);
+	printf("str1: %s\n", str1 + 1);
+	char * str2 = strchr(str1+1, ' ');
+	int pos2 = str2 - (str1 + 1);
+    strncpy(clientID, str1 + 1, pos2);
 
-    str1 = strchr(str2, ' ');
-    pos1 = str1 - str2;
-    memcpy(serverIP, str2, pos1);
+    char *str3 = strchr(str2 + 1, ' ');
+    int pos3 = str3 - str2 - 1;
+    strncpy(password, str2 + 1, pos3);
 
-    str2 = strchr(str1, ' ');
-    pos2 = str2 - str1;
-    memcpy(serverPort, str1, pos2);
+    str1 = strchr(str3 + 1, ' ');
+    pos2 = str1 - str3 - 1;
+    strncpy(serverIP, str3 + 1, pos2);
+
+    str2 = strchr(str1 + 1, ' ');
+    pos3 = str2 - str1 - 1;
+    strncpy(serverPort, str1 + 1, pos3);
 
     if(clientID == NULL || password == NULL || serverIP == NULL || serverPort == NULL){
         printf("ERROR OCCURED WITH LOGIN.\n");
