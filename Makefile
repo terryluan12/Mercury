@@ -1,10 +1,10 @@
 CC=gcc
 CFLAGS=-g
 all: server client
-server: ./server/server.c
-		gcc -o server ./server/server.c
-client: ./client/client.c
-		gcc -o client ./client/client.c
+server: server.c
+		gcc -pthread -o server server.c helper.c
+client: client.c
+		gcc -o client client.c commands.c helper.c
 clean:
 	rm -f *.o server client
 
