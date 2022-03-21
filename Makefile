@@ -7,5 +7,3 @@ client: client.c
 		gcc -o client client.c commands.c helper.c
 clean:
 	rm -f *.o server client
-
-TODO FIGURE THIS OUT
