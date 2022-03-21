@@ -46,6 +46,10 @@ void list(int *sockfd) {
         printf("Error, couldn't send the list to the server\n");
         return;
     }
+
+    numbytes = recv(*sockfd, buf, MAXBUFLEN-1, 0);
+    stringToMessage(buf, message);
+    printf(message->data);
 }
 
 void login(char *msg, int *sockfd){
@@ -89,18 +93,21 @@ void login(char *msg, int *sockfd){
         int success = getaddrinfo(serverIP, serverPort, &hints, &servinfo);
         if(success != 0){
             fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(success));
+            *sockfd = -1;
             return;
         }
 
         *sockfd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
         if(*sockfd == -1){
             printf("ERROR GETTING SOCKET\n");
+            *sockfd = -1;
             return;
         }
 
         if(connect(*sockfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1){
             close(*sockfd);
             printf("ERROR CONNECTING WITH SOCKET\n");
+            *sockfd = -1;
             return;
         }
 

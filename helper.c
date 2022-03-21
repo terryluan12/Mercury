@@ -21,7 +21,7 @@ void stringToMessage(char* str, struct message *msg){
 
     // printf("PT 4\n");
 
-    str = strtok(NULL, ":");
+    str = strtok(NULL, "");
     if(str != NULL)    
         strcpy(msg->data, str);
 

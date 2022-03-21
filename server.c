@@ -262,15 +262,38 @@ void *mainLoop(void *arg){
                 continue;
                 
             }else if(type == QUERY){
-                // ADDING THE QUERY IMPLEMENTATION
-                // I ALREADY DID THE PRINTF EQUIVALENT. 
-                // CAN YOU ADD INTO messagesend?? THANKSSSS
+                char *query = malloc(MAX_DATA);
+                strcpy(query, "");
+                char tempStr[10];
+                strcat(query, "Sessions active:\n");
                 for(int i = 0; sessionList[i]; i++){
-                    printf("Session: %d\n", sessionList[i]->sessionID);
+                    strcat(query, "Session: ");
+                    sprintf(tempStr, "%d", sessionList[i]->sessionID);
+                    strcat(query, tempStr);
+                    strcat(query, "\n");
                     for(int j = 0; sessionList[i]->users[j]; j++){
-                        printf("\tUser: %s\n", sessionList[i]->users[j]->id);
+                        strcat(query, "\tUser: ");
+                        sprintf(tempStr, "%d", sessionList[i]->users[j]->id);
+                        strcat(query, tempStr);
+                        strcat(query, "\n");
                     }
                 }
+                strcat(query, "\nUsers active:\n");
+
+                for(int i = 0; loggedList[i]; i++){
+                    strcat(query, "User: ");
+                    strcat(query, loggedList[i]->id);
+                    strcat(query, "\tSocket: ");
+                    sprintf(tempStr, "%d", loggedList[i]->sockfd);
+                    strcat(query, tempStr);
+                    strcat(query, "\n");
+                }
+                strcat(query, "\n");
+
+
+                strcpy(messagesend->data, query);
+                messagesend->size = sizeof(query);
+                messagesend->type = QU_ACK;
             }else{
                 printf("ERROR IN TYPE PANICCC\n");
             }
@@ -375,7 +398,6 @@ int main(int argc, char **argv){
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-	printf("port is %s\n", argv[1]);
     int success = getaddrinfo(NULL, argv[1], &hints, &servinfo);
     if(success != 0){
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(success));
@@ -393,7 +415,7 @@ int main(int argc, char **argv){
         printf("ERROR IN BIND\n");
         return -1;
     }
-    printf("server: successfully binded\n");
+    printf("server: successfully binded to port %d\n", sockfd);
 
 
     // Opening the list of possible users.
