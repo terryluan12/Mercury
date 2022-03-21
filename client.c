@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
             message(sockfd, com);
         }
         buf[strlen(com)] = ' ';
+        sleep(1);
     }
    printf("Quit successfully\n");
    sleep(1);
