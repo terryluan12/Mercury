@@ -7,6 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include "master.h"
+#include <pthread.h>
 
 
 static const char *mainmenu[] = {
@@ -24,6 +25,7 @@ static const char *mainmenu[] = {
 	NULL
 };
 
+pthread_t thread;
 
 void list(int *sockfd) {
     if(*sockfd == -1){
@@ -102,6 +104,8 @@ void login(char *msg, int *sockfd){
             close(*sockfd);
             printf("ERROR CONNECTING WITH SOCKET\n");
             return;
+        } else {
+        	int ret = pthread_create(&thread, NULL, &textsession, (void*) sockfd);
         }
 
         struct message *message = malloc(sizeof(struct message));
@@ -179,6 +183,8 @@ void logout(int *sockfd){
         printf("ERROR SENDING EXIT SIGNAL\n");
         return;
     }
+    int ret = pthread_cancel(thread);
+    assert(ret == 0);
     close(*sockfd);
     *sockfd = -1;
 }
@@ -300,4 +306,23 @@ void printmenu(){
         printf("%s\n", mainmenu[i]);
     }
     printf("\n");
+}
+
+void textsession(int * sockfd) {
+	char message[1000];
+	while (1) {
+		int numbytes = recv(*sockfd, message, 999, 0);
+		if (numbytes == -1) {
+			continue;
+		}
+		message[999] = '\0';
+		int type = atoi(strtok(message, ":"));
+		if (type != MESSAGE) {
+			continue;
+		} 
+		int size = atoi(strtok(NULL, ":"));
+		char * source = strtok(NULL, ":");
+		char * data = strtok(NULL, ":");
+		printf("Message received:\n%s\n", data);
+	}
 }

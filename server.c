@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include "master.h"
-
+//yolo
 
 struct user *userList[MAXNUMUSERS+1], *loggedList[MAXLOGGEDINUSERS+1];
 struct session *sessionList[MAXNUMSESSIONS+1];

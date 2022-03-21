@@ -1,5 +1,7 @@
 #ifndef MASTER_H_
 #define MASTER_H_
+#include <assert.h>
+
 
 #include <pthread.h>
 
@@ -54,5 +56,6 @@ void stringToMessage(char* str, struct message *msg);
 void messageToString(char* str, struct message *msg);
 void message(int *sockfd, char *msg);
 void printmenu();
+void textsession(int * sockfd);
 
 #endif
