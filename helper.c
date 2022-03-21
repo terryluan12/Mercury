@@ -4,30 +4,34 @@
 #include "master.h"
 
 void stringToMessage(char* str, struct message *msg){
-    char * first_str = strchr(str, ':');
-    int first_pos = first_str - str;
-    char * type;
-    type = malloc(first_pos);
-    memcpy(type, msg, first_pos);
-    msg->type = atoi(type);
+    printf("recieving %s\n", str);
+    str = strtok(str, ":");
+    msg->type = atoi(str);
 
-    char * second_str = strchr(first_str + 1, ':');
-    int sec_pos = second_str - first_str - 1;
-    char * size;
-    size = malloc(sec_pos);
-    memcpy(size, first_str + 1, sec_pos);
-    msg->size = atoi(size);
+    printf("PT 1\n");
 
-    char * third_str = strchr(second_str + 1, ':');
-    int third_pos = third_str - second_str - 1;
-    memcpy(msg->source, second_str + 1, third_pos);
+    str = strtok(NULL, ":");
+    msg->size = atoi(str);
 
-    memcpy(msg->data, third_str + 1, strlen(str));
+    printf("PT 2\n");
+
+    str = strtok(NULL, ":");
+    if(str != NULL)
+        strcpy(msg->source, str);
+
+    printf("PT 4\n");
+
+    str = strtok(NULL, ":");
+    if(str != NULL)    
+        strcpy(msg->data, str);
+
+    printf("It is %d:%d:%s:%s\n", msg->type, msg->size, msg->source, msg->data);
 }
 
 
 void messageToString(char* str, struct message *msg){
-    
+    printf("Changing\n");
     int num_chars = sprintf(str, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
+    printf("got %s\n", str);
 
 }

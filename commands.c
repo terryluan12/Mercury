@@ -8,51 +8,65 @@
 #include <errno.h>
 #include "master.h"
 
+
+static const char *mainmenu[] = {
+    "Possible Commands                                      ",
+	"/login <client ID> <password> <server-IP> <server-port>",
+	"/logout                                                ",
+	"/joinsession <session ID>                              ",
+	"/leavesession                                          ",
+	"/createsession <session ID>                            ",
+	"/list                                                  ",
+	"/quit                                                  ",
+	"/leavesession                                          ",
+    "/getIP                                                 ",
+	"<text>                                          ",
+    
+	NULL
+};
+
+
 void list(int *sockfd) {
     if(*sockfd == -1){
-        printf("Not currently connected to any server.");
+        printf("Not currently logged in.\n");
         return;
     }
 
-    char *buf;
+    char buf[MAXBUFLEN];
 
-    struct message *m;
-    m->type = QUERY;
-    m->size = 0;
+    struct message *message = malloc(sizeof(struct message));
+    message->type = QUERY;
+    message->size = 0;
 
-    messageToString(buf, m);
+    messageToString(buf, message);
 
     int numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
     if(numbytes == -1){
-        printf("Error, couldn't send the list to the server");
+        printf("Error, couldn't send the list to the server\n");
         return;
     }
 }
 
-void login(char *message, int *sockfd){
+void login(char *msg, int *sockfd){
     char clientID[20], password[100], serverIP[15], serverPort[10];
-    char buf[MAXBUFLEN];
     int numbytes;
+    char buf[MAXBUFLEN];
 
-    char * str1 = strchr(message, ' ');
+    msg = strtok(NULL, " ");
+    // printf("clientID is %s\n", msg);
+    strcpy(clientID, msg);
 
-	printf("message: %s\n", message);
-	printf("str1: %s\n", str1 + 1);
-	char * str2 = strchr(str1+1, ' ');
-	int pos2 = str2 - (str1 + 1);
-    strncpy(clientID, str1 + 1, pos2);
+    msg = strtok(NULL, " ");
+    // printf("password is %s\n", msg);
+    strcpy(password, msg);
 
-    char *str3 = strchr(str2 + 1, ' ');
-    int pos3 = str3 - str2 - 1;
-    strncpy(password, str2 + 1, pos3);
+    msg = strtok(NULL, " ");
+    // printf("serverIP is %s\n", msg);
+    strcpy(serverIP, msg);
 
-    str1 = strchr(str3 + 1, ' ');
-    pos2 = str1 - str3 - 1;
-    strncpy(serverIP, str3 + 1, pos2);
-
-    str2 = strchr(str1 + 1, ' ');
-    pos3 = str2 - str1 - 1;
-    strncpy(serverPort, str1 + 1, pos3);
+    msg = strtok(NULL, " ");
+    // printf("serverPort is %s\n", msg);
+    strcpy(serverPort, msg);
 
     if(clientID == NULL || password == NULL || serverIP == NULL || serverPort == NULL){
         printf("ERROR OCCURED WITH LOGIN.\n");
@@ -78,12 +92,14 @@ void login(char *message, int *sockfd){
         }
 
         *sockfd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
-        if(*sockfd == -1)
-            printf("ERROR GETTING SOCKET");
+        if(*sockfd == -1){
+            printf("ERROR GETTING SOCKET\n");
+            return;
+        }
 
         if(connect(*sockfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1){
             close(*sockfd);
-            printf("ERROR CONNECTING WITH SOCKET");
+            printf("ERROR CONNECTING WITH SOCKET\n");
             return;
         }
 
@@ -95,6 +111,7 @@ void login(char *message, int *sockfd){
         message->size = strlen(message->data);
         messageToString(buf, message);
 
+        printf("Sending Login Request\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
         if(numbytes == -1){
@@ -113,7 +130,11 @@ void login(char *message, int *sockfd){
         }
 
         buf[numbytes] = '\0';
+        // printf("The thing is now %s\n", buf);
         stringToMessage(buf, message);
+
+        // printf("The type is %d\n", message->type);
+        // printf("The type is %d\n", message->size);
 
         if(message->type == LO_ACK){
             printf("User now logged in\n");
@@ -125,7 +146,7 @@ void login(char *message, int *sockfd){
             return;
         }
         else{
-            printf("UNKNOWN PACKET RECEIVED");
+            printf("UNKNOWN PACKET RECEIVED\n");
             close(*sockfd);
             *sockfd = -1;
             return;
@@ -148,10 +169,11 @@ void logout(int *sockfd){
     message->size = 0;
     messageToString(buf, message);
 
+    printf("Sending Logout Request\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
     if(numbytes == -1){
-        printf("ERROR SENDING EXIT SIGNAL");
+        printf("ERROR SENDING EXIT SIGNAL\n");
         return;
     }
     close(*sockfd);
@@ -178,9 +200,10 @@ void joinsess(int *sockfd, char *sessID){
         message->size = strlen(message->data);
         messageToString(buf, message);
 
+        printf("Sending Join Session Request\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
         if(numbytes == -1){
-            printf("SEND ERROR");
+            printf("SEND ERROR\n");
             return;
         }
     }
@@ -201,10 +224,11 @@ void leavesess(int *sockfd){
 
     messageToString(buf, message);
 
+    printf("Sending Leave Session Request\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
     if(numbytes == -1){
-        printf("ERROR WITH SENDING CREATE");
+        printf("ERROR WITH SENDING CREATE\n");
         return;
     }
 
@@ -225,11 +249,45 @@ void createsess(int *sockfd){
 
     messageToString(buf, message);
 
+    printf("Sending Create Session Request\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
     if(numbytes == -1){
-        printf("ERROR WITH SENDING CREATE");
+        printf("ERROR WITH SENDING CREATE\n");
         return;
     }
 
+}
+void message(int *sockfd, char *msg){
+    char buf[MAXBUFLEN];
+    int numbytes;
+    if(*sockfd == -1){
+        printf("Not currently logged in.\n");
+        return;
+    }
+
+    struct message *message;
+    message->type = MESSAGE;
+
+    strncpy(message->data, buf, MAX_DATA);
+    message->size = strlen(message->data);
+
+    messageToString(buf, message);
+
+    printf("Sending Message Request\n");
+    numbytes = send(*sockfd, buf, MAXBUFLEN - 1, 0);
+
+    if(numbytes == -1){
+        printf("ERROR WITH SEND\n");
+        return;
+    }
+}
+
+
+void printmenu(){
+    int ct;
+    for(int i = 0; mainmenu[i]; i++){
+        printf("%s\n", mainmenu[i]);
+    }
+    printf("\n");
 }
