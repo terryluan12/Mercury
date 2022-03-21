@@ -48,10 +48,6 @@ void list(int *sockfd) {
         printf("Error, couldn't send the list to the server\n");
         return;
     }
-
-    numbytes = recv(*sockfd, buf, MAXBUFLEN-1, 0);
-    stringToMessage(buf, message);
-    printf(message->data);
 }
 
 void login(char *msg, int *sockfd){
@@ -127,15 +123,13 @@ void login(char *msg, int *sockfd){
 
         printf("Sending Login Request\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
-
+        printf("here\n");
         if(numbytes == -1){
             printf("COULDN'T SEND TO SERVER\n");
             close(*sockfd);
             *sockfd = -1;
             return;
         }
-
-        numbytes = recv(*sockfd, buf, MAXBUFLEN-1, 0);
         if(numbytes == -1){
             printf("ERROR RECEIVING\n");
             close(*sockfd);
@@ -143,28 +137,8 @@ void login(char *msg, int *sockfd){
             return;
         }
 
-        buf[numbytes] = '\0';
-        // printf("The thing is now %s\n", buf);
-        stringToMessage(buf, message);
 
-        // printf("The type is %d\n", message->type);
-        // printf("The type is %d\n", message->size);
-
-        if(message->type == LO_ACK){
-            printf("User now logged in\n");
-        }
-        else if (message->type == LO_NAK) {
-            printf("login failed: %s\n", message->data);
-            close(*sockfd);
-            *sockfd = -1;
-            return;
-        }
-        else{
-            printf("UNKNOWN PACKET RECEIVED\n");
-            close(*sockfd);
-            *sockfd = -1;
-            return;
-        }
+        
     }
 
 }
@@ -219,14 +193,7 @@ void joinsess(int *sockfd, char *sessID){
         return;
     }
 
-    numbytes = recv(*sockfd, buf, MAXBUFLEN-1, 0);
-    stringToMessage(buf, message);
-    if(message->type == JN_ACK){
-        printf("User joined session\n");
-    }
-    else if (message->type == JN_NAK) {
-        printf("join session failed: %s\n", message->data);
-    }
+    
     
 }
 
@@ -315,21 +282,46 @@ void printmenu(){
     printf("\n");
 }
 
-void textsession(int * sockfd) {
+void *textsession(void *socketfd) {
+    int *sockfd = (int *)socketfd;
 	char message[1000];
 	while (1) {
 		int numbytes = recv(*sockfd, message, 999, 0);
 		if (numbytes == -1) {
 			continue;
 		}
-		message[999] = '\0';
 		int type = atoi(strtok(message, ":"));
-		if (type != MESSAGE) {
-			continue;
-		} 
+		
 		int size = atoi(strtok(NULL, ":"));
 		char * source = strtok(NULL, ":");
 		char * data = strtok(NULL, ":");
-		printf("Message received:\n%s\n", data);
+        if (type == MESSAGE) {
+            printf("Message received:\n%s\n", data);
+		} 
+        else if(type == QU_ACK){
+            printf(data);
+        }
+        else if(type == LO_ACK){
+            printf("User now logged in\n");
+        }
+        else if (type == LO_NAK) {
+            printf("login failed: %s\n", data);
+            close(*sockfd);
+            *sockfd = -1;
+            return;
+        }
+        else if(type == JN_ACK){
+            printf("User joined session\n");
+        }
+        else if (type == JN_NAK) {
+            printf("join session failed: %s\n", data);
+        }
+        else{
+            printf("UNKNOWN PACKET RECEIVED\n");
+            close(*sockfd);
+            *sockfd = -1;
+            return;
+        }
+        
 	}
 }

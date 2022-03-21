@@ -56,6 +56,6 @@ void stringToMessage(char* str, struct message *msg);
 void messageToString(char* str, struct message *msg);
 void message(int *sockfd, char *msg);
 void printmenu();
-void textsession(int * sockfd);
+void *textsession(void* socketfd);
 
 #endif
