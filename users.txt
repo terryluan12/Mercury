@@ -1,1 +1,3 @@
 admin : password
+admin1 : password1
+testuser : testpassword

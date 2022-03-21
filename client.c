@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         }
         else if(strcmp(com, CREATECMD) == 0){
             printf("Creating Session\n");
-            createsess(sockfd);
+            createsess(sockfd, com);
         }
         else if(strcmp(com, LISTCMD) == 0){
             printf("Listing\n");

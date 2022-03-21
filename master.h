@@ -48,7 +48,7 @@ void login(char *msg, int *prevSockFD);
 void logout(int *prevSockFD);
 void joinsess(int *sockfd, char *sessID);
 void leavesess(int *sockfd);
-void createsess(int *sockfd);
+void createsess(int *sockfd, char *sessID);
 void list(int *socketfd);
 void stringToMessage(char* str, struct message *msg);
 void messageToString(char* str, struct message *msg);

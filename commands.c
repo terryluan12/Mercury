@@ -18,7 +18,6 @@ static const char *mainmenu[] = {
 	"/createsession <session ID>                            ",
 	"/list                                                  ",
 	"/quit                                                  ",
-	"/leavesession                                          ",
     "/getIP                                                 ",
 	"<text>                                          ",
     
@@ -39,6 +38,8 @@ void list(int *sockfd) {
     message->size = 0;
 
     messageToString(buf, message);
+
+    free(message);
 
     int numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
     if(numbytes == -1){
@@ -110,6 +111,8 @@ void login(char *msg, int *sockfd){
         strncpy(message->data, password, MAX_DATA);
         message->size = strlen(message->data);
         messageToString(buf, message);
+        
+        free(message);
 
         printf("Sending Login Request\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
@@ -181,32 +184,37 @@ void logout(int *sockfd){
 }
 
 void joinsess(int *sockfd, char *sessID){
-    char *sessionID;
     char buf[MAXBUFLEN];
     int numbytes;
+    sessID = strtok(NULL, " ");
+    printf("Joining Session...\n");
     if(*sockfd == -1){
         printf("Not currently logged in.\n");
         return;
     }
 
-    sessionID = strtok(sessID, " ");
+   
+    struct message *message;
+    message->type = JOIN;
+    strncpy(message->data, sessID, MAX_DATA);
+    message->size = strlen(message->data);
+    messageToString(buf, message);
 
-    if(sessionID == NULL){
-        printf("Invalid command. %s is not a valid session\n", sessionID);
-    }else{
-        struct message *message;
-        message->type = JOIN;
-        strncpy(message->data, sessionID, MAX_DATA);
-        message->size = strlen(message->data);
-        messageToString(buf, message);
-
-        printf("Sending Join Session Request\n");
-        numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
-        if(numbytes == -1){
-            printf("SEND ERROR\n");
-            return;
-        }
+    numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
+    if(numbytes == -1){
+        printf("SEND ERROR\n");
+        return;
     }
+
+    numbytes = recv(*sockfd, buf, MAXBUFLEN-1, 0);
+    stringToMessage(buf, message);
+    if(message->type == JN_ACK){
+        printf("User joined session\n");
+    }
+    else if (message->type == JN_NAK) {
+        printf("join session failed: %s\n", message->data);
+    }
+    
 }
 
 void leavesess(int *sockfd){
@@ -217,6 +225,7 @@ void leavesess(int *sockfd){
         printf("Not currently logged in.\n");
         return;
     }
+    printf("Leaving Session...\n");
 
     struct message *message;
     message->type = LEAVE_SESS;
@@ -224,7 +233,6 @@ void leavesess(int *sockfd){
 
     messageToString(buf, message);
 
-    printf("Sending Leave Session Request\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
     if(numbytes == -1){
@@ -234,10 +242,11 @@ void leavesess(int *sockfd){
 
 }
 
-void createsess(int *sockfd){
+void createsess(int *sockfd, char *sessID){
     char *sessionID;
     char buf[MAXBUFLEN];
     int numbytes;
+    sessID = strtok(NULL, " ");
     if(*sockfd == -1){
         printf("Not currently logged in.\n");
         return;
@@ -246,6 +255,7 @@ void createsess(int *sockfd){
     struct message *message;
     message->type = NEW_SESS;
     message->size = 0;
+    strcpy(message->data, sessID);
 
     messageToString(buf, message);
 
