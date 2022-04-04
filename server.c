@@ -23,7 +23,7 @@ void *mainLoop(void *arg){
     int type;
     int loggedIn = 0;
     int sessionIDLoc = -1;
-
+    
     printf("Thread created\n");
 
     while(1){
@@ -220,6 +220,7 @@ void *mainLoop(void *arg){
                 struct session *tempSession = malloc(sizeof(struct session));
                 strcpy(tempSession->sessionID, messagerecv->data);
                 tempSession->users[0] = NULL;
+                strcpy(tempSession->admins[0], mainUser->id);
 
                 pthread_mutex_lock(sessionList_mutex);
                     int i = 0;
@@ -233,7 +234,67 @@ void *mainLoop(void *arg){
                 messagesend->type = NS_ACK;
                 printf("Created new session %s.\n",sessionList[i]->sessionID);
 
-            }else if(type == MESSAGE){
+            }else if(type == KICK){
+                messagesend->type = KICK_NAK;
+
+                if(sessionIDLoc == -1){
+                    strcpy(messagesend->data, "NOT IN SESSION CURRENTLY. UNEXPECTED!");
+                }
+                else{
+                    int i;
+                    int isPrivileged = 0;
+                    for(i = 0; strlen(sessionList[sessionIDLoc]->admins[i]) != 0; i++){
+                        if(strcmp(sessionList[sessionIDLoc]->admins[i], mainUser->id) == 0){
+                            isPrivileged = 1;
+                        }
+                    }
+                    if(!isPrivileged){
+                        sprintf(messagesend->data, "%s has insufficient privileges to kick.\n", mainUser->id);
+                    }
+                    else{
+                        for(i = 0; sessionList[sessionIDLoc]->users[i]; i++){
+                            if(strcmp(messagerecv->data, sessionList[sessionIDLoc]->users[i]->id) == 0){
+                                
+                                // Lock the sessionList so we can access and edit it
+                                pthread_mutex_lock(sessionList_mutex);
+                                    // free it
+                                    free(sessionList[sessionIDLoc]->users[i]);
+
+                                    // shift all the users left, so the "users" array is contiguous
+                                    while(sessionList[sessionIDLoc]->users[i+1] != NULL){
+                                        sessionList[sessionIDLoc]->users[i] = sessionList[sessionIDLoc]->users[i+1];
+                                        i++;
+                                    }
+                                    sessionList[sessionIDLoc]->users[i] = NULL;
+                                pthread_mutex_unlock(sessionList_mutex);
+
+                                // SEND THE ACKNOWLEDGEMENT TO THE PERSON KICKED TODO
+
+                                messagesend->type = KICK_ACK;
+                                messagesend->size = 0;
+                                strcpy(messagesend->source, mainUser->id);
+                                break;
+                            }
+                        }
+                        if(messagesend->type == KICK_NAK){
+                            sprintf(messagesend->data, "%s is not in session.\n", messagerecv->data);
+                        }
+                    }
+
+                }
+            }
+            else if(type == ADDMIN){
+                if(sessionIDLoc == -1){
+                    strcpy(messagesend->data, "NOT IN SESSION CURRENTLY. UNEXPECTED!");
+                }
+                else{
+                    int i;
+                    for(i = 0; strlen(sessionList[sessionIDLoc]->admins[i]) != 0; i++);
+                    strcpy(sessionList[sessionIDLoc]->admins[i], messagerecv->data);
+                    printf("Added %s as an admin to session %s", messagerecv->data, sessionList[sessionIDLoc]->sessionID);
+                }
+            }
+            else if(type == MESSAGE){
                 int numbytes;
 
                 messagesend->type = MESSAGE;
@@ -262,6 +323,17 @@ void *mainLoop(void *arg){
                 char *query = malloc(MAX_DATA);
                 strcpy(query, "");
                 char tempStr[10];
+                strcat(query, "\nUsers active:\n");
+
+                for(int i = 0; loggedList[i]; i++){
+                    strcat(query, "User: ");
+                    strcat(query, loggedList[i]->id);
+                    strcat(query, "\tSocket: ");
+                    sprintf(tempStr, "%d", loggedList[i]->sockfd);
+                    strcat(query, tempStr);
+                    strcat(query, "\n");
+                }
+                
                 strcat(query, "Sessions active:\n");
                 for(int i = 0; sessionList[i]; i++){
                     strcat(query, "Session: ");
@@ -275,17 +347,9 @@ void *mainLoop(void *arg){
                         strcat(query, "\n");
                     }
                 }
-                strcat(query, "\nUsers active:\n");
 
-                for(int i = 0; loggedList[i]; i++){
-                    strcat(query, "User: ");
-                    strcat(query, loggedList[i]->id);
-                    strcat(query, "\tSocket: ");
-                    sprintf(tempStr, "%d", loggedList[i]->sockfd);
-                    strcat(query, tempStr);
-                    strcat(query, "\n");
-                }
                 strcat(query, "\n");
+                
 
 
                 strcpy(messagesend->data, query);
@@ -303,7 +367,7 @@ void *mainLoop(void *arg){
                 strcpy(tempInfo, messagerecv->data);
                 fprintf(fptr, "\n%s", tempInfo);
                 fclose(fptr);
-                fscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
+                sscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
                 while(userList[i])
                     i++;
                 userList[i] = tempUser;

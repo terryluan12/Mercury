@@ -12,6 +12,8 @@ const char *LOGOUTCMD = "/logout";
 const char *JOINCMD = "/joinsession";
 const char *LEAVECMD = "/leavesession";
 const char *CREATECMD = "/createsession";
+const char *KICKCMD = "/kick";
+const char *ADDMINCMD = "/addadmin";
 const char *LISTCMD = "/list";
 const char *QUITCMD = "/quit";
 const char *REGCMD = "/register";
@@ -37,6 +39,7 @@ int main(int argc, char *argv[]) {
     system("clear");
 
     while(1){
+
         printf("client[? for commands]: ");
 
         fgets(buf, MAXBUFLEN, stdin);
@@ -61,6 +64,12 @@ int main(int argc, char *argv[]) {
         }
         else if(strcmp(com, CREATECMD) == 0){
             createsess(sockfd, com);
+        }
+        else if(strcmp(com, KICKCMD) == 0){
+            kick(sockfd);
+        }
+        else if(strcmp(com, ADDMINCMD) == 0){
+            addmin(sockfd);
         }
         else if(strcmp(com, LISTCMD) == 0){
             list(sockfd);

@@ -13,8 +13,8 @@
 #define MAXNUMUSERS 30
 #define MAXNUMSESSIONS 3
 
-enum cmd {LOGIN, LO_ACK, LO_NAK, EXIT, JOIN, JN_ACK, JN_NAK,
-		  LEAVE_SESS, NEW_SESS, REGISTER, NS_ACK, MESSAGE, QUERY, QU_ACK };
+enum cmd {LOGIN, LO_ACK, LO_NAK, EXIT, JOIN, JN_ACK, JN_NAK, ADDMIN,
+		  LEAVE_SESS, NEW_SESS, REGISTER, KICK, KICK_ACK, KICK_NAK, NS_ACK, MESSAGE, QUERY, QU_ACK };
 
 
 struct message {
@@ -40,8 +40,8 @@ struct user {
 
 struct session{
 	char sessionID[MAX_NAME];
-
 	struct user *users[MAXLOGGEDINUSERS];
+	char admins[MAXLOGGEDINUSERS][MAX_NAME];
 };
 
 
@@ -50,6 +50,8 @@ void logout(int *prevSockFD);
 void joinsess(int *sockfd, char *sessID);
 void leavesess(int *sockfd);
 void createsess(int *sockfd, char *sessID);
+void kick(int *sockfd);
+void addmin(int *sockfd);
 void list(int *socketfd);
 void reg(int *socketfd, char *regInfo);
 

@@ -11,17 +11,19 @@
 
 
 static const char *mainmenu[] = {
-    "Possible Commands                                      ",
-    "/register <username> <password>                        ",
-	"/login <client ID> <password> <server-IP> <server-port>",
-	"/logout                                                ",
-	"/joinsession <session ID>                              ",
-	"/leavesession                                          ",
-	"/createsession <session ID>                            ",
-	"/list                                                  ",
-	"/quit                                                  ",
-    "/getIP                                                 ",
-	"<text>                                          ",
+    "Possible Commands(admin commands in \033[0;31mred\033[0m) ",
+    "/register <username> <password>                           ",
+	"/login <client ID> <password> <server-IP> <server-port>   ",
+	"/logout                                                   ",
+	"/joinsession <session ID>                                 ",
+	"/leavesession                                             ",
+	"/createsession <session ID>                               ",
+    "\033[0;31m/kick <username>\033[0m                         ",
+    "\033[0;31m/addadmin <username>\033[0m                     ",
+	"/list                                                     ",
+	"/quit                                                     ",
+    "/getIP                                                    ",
+	"<text>                                                    ",
     
 	NULL
 };
@@ -29,6 +31,7 @@ static const char *mainmenu[] = {
 pthread_t thread;
 void *returnVal;
 char userName[MAX_NAME];
+char isAdmin;
 int inSession = 0;
 
 void list(int *sockfd) {
@@ -76,7 +79,6 @@ void login(char *msg, int *sockfd){
     }
     else{
         
-        printf("ID is %s, pw is %s, IP is %s, Port is %s\n", clientID, password, serverIP, serverPort);
         struct addrinfo hints, *servinfo;
         struct sockaddr_storage their_addr;
         struct sockaddr_in *return_addr;
@@ -268,6 +270,89 @@ void createsess(int *sockfd, char *sessID){
     }
 
 }
+
+
+void kick(int *sockfd){
+    char buf[MAXBUFLEN];
+    int numbytes;
+    if(*sockfd == -1){
+        printf("Not currently logged in.\n");
+        return;
+    }
+
+    if(!inSession){
+        printf("Must be in a session to kick someone\n");
+        return;
+    }
+
+    char *kickedName = strtok(NULL, " ");
+    if(!kickedName){
+        printf("Incorrect Usage.\nMust be in the form /kick <username>\n");
+        return;
+    }
+
+    struct message *message = malloc(sizeof(struct message));
+    message->type = KICK;
+    strcpy(message->data, kickedName);
+    message->size = strlen(kickedName);
+    strncpy(message->source, userName, MAX_NAME);
+
+    messageToString(buf, message);
+    free(message);
+
+
+    numbytes = send(*sockfd, buf, MAXBUFLEN - 1, 0);
+
+    if(numbytes == -1){
+        printf("ERROR WITH SEND\n");
+        return;
+    }
+    
+}
+
+void addmin(int *sockfd){
+    char buf[MAXBUFLEN];
+    int numbytes;
+
+    if(*sockfd == -1){
+        printf("Not currently logged in.\n");
+        return;
+    }
+
+    if(!inSession){
+        printf("Must be in a session to kick someone\n");
+        return;
+    }
+
+    char *newAdmin = strtok(NULL, " ");
+    if(!newAdmin){
+        printf("Incorrect Usage.\nMust be in the form /addadmin <username>\n");
+        return;
+    }
+
+    struct message *message = malloc(sizeof(struct message));
+    message->type = ADDMIN;
+    strcpy(message->data, newAdmin);
+    message->size = strlen(newAdmin);
+    strncpy(message->source, userName, MAX_NAME);
+
+    messageToString(buf, message);
+    free(message);
+
+
+    numbytes = send(*sockfd, buf, MAXBUFLEN - 1, 0);
+
+    if(numbytes == -1){
+        printf("ERROR WITH SEND\n");
+        return;
+    }
+
+
+}
+
+
+
+
 void message(int *sockfd, char *msg){
     char buf[MAXBUFLEN];
     int numbytes;
@@ -315,6 +400,7 @@ void reg(int *socketfd, char *regInfo){
 
     if(!newUserName || !newPassword){
         printf("Incorrect Usage.\nMust be in the form /register <username> <password>\n");
+        return;
     }
     struct message *message = malloc(sizeof(struct message));
 
@@ -387,6 +473,12 @@ void *textsession(void *socketfd) {
         }
         else if(message->type == NS_ACK){
             printf("New session Created\n");
+        }
+        else if(message->type == KICK_ACK){
+            printf("User Kicked\n");
+        }
+        else if(message->type == KICK_NAK){
+            printf("%s\n", message->data);
         }
         else{
             printf("UNKNOWN PACKET RECEIVED\n");
