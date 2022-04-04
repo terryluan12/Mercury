@@ -47,7 +47,7 @@ void *mainLoop(void *arg){
         stringToMessage(buf, messagerecv);
         printf("listener: got packet, %d bytes long from %s\n", numbytes, mainUser->id);
         type = messagerecv->type;
-
+		printf("%d\n", type);
 
         if(type == EXIT)
             break;
@@ -107,7 +107,27 @@ void *mainLoop(void *arg){
                     loggedIn = 1;
                     printf("Successfully logged in!!\n");
                 }
+			}
+			else if(type == REGISTER){
+                struct user *tempUser = malloc(sizeof(struct user));
+                printf("Trying to register %s\n", messagerecv->data);
+                int i = 0;
+                FILE *fptr;
+                char tempInfo[MAX_DATA];
+                fptr = fopen("users.txt", "a");
 
+                sprintf(tempInfo, "%s %s" messagerecv -> source, messagerecv->data);
+                fprintf(fptr, "\n%s", tempInfo);
+                fclose(fptr);
+                sscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
+                while(userList[i])
+                    i++;
+                userList[i] = tempUser;
+                userList[i+1] = NULL;
+
+                printf("Successfully added %s\n", messagerecv->data);
+				loggedin = 1;
+                continue;
             }else{
                 messagesend->type = LO_NAK;
                 strcpy(messagesend->data, "Not logged in.");
@@ -268,7 +288,8 @@ void *mainLoop(void *arg){
                                 // Lock the sessionList so we can access and edit it
                                 pthread_mutex_lock(sessionList_mutex);
                                     // free it
-                                    free(sessionList[sessionIDLoc]->users[i]);
+                                    struct user * tokick = sessionList[sessionIDLoc]->users[i];
+                                    //free(sessionList[sessionIDLoc]->users[i]);
 
                                     // shift all the users left, so the "users" array is contiguous
                                     while(sessionList[sessionIDLoc]->users[i+1] != NULL){
@@ -278,7 +299,23 @@ void *mainLoop(void *arg){
                                     sessionList[sessionIDLoc]->users[i] = NULL;
                                 pthread_mutex_unlock(sessionList_mutex);
 
-                                // SEND THE ACKNOWLEDGEMENT TO THE PERSON KICKED TODO
+                                // SEND THE ACKNOWLEDGEMENT TO THE PERSON KICKED
+				struct message * kickmsg = calloc(1, sizeof(struct message));
+				kickmsg -> type = USERKICK;
+				kickmsg -> size = 0;
+				strcpy(kickmsg ->source, tokick->id);
+        			messagesend->size = strlen(kickmsg->data);
+        			memset(buf, 0, MAXBUFLEN);
+        			messageToString(buf, kickmsg);
+        			
+        			printf("Sending reply back\n");
+        			numbytes = send(tokick->sockfd, buf, MAXBUFLEN-1, 0);
+
+        			if(numbytes == -1){
+            				printf("ERROR IN SENDING");
+        			}
+        			free(tokick);
+        			free(kickmsg);
 
                                 messagesend->type = KICK_ACK;
                                 messagesend->size = 0;
@@ -384,27 +421,6 @@ void *mainLoop(void *arg){
                 strcpy(messagesend->data, query);
                 messagesend->size = sizeof(query);
                 messagesend->type = QU_ACK;
-            }
-            else if(type == REGISTER){
-                struct user *tempUser = malloc(sizeof(struct user));
-                printf("Trying to register %s\n", messagerecv->data);
-                int i = 0;
-                FILE *fptr;
-                char tempInfo[MAX_DATA];
-                fptr = fopen("users.txt", "a");
-
-                strcpy(tempInfo, messagerecv->data);
-                fprintf(fptr, "\n%s", tempInfo);
-                fclose(fptr);
-                sscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
-                while(userList[i])
-                    i++;
-                userList[i] = tempUser;
-                userList[i+1] = NULL;
-
-                printf("Successfully added %s\n", messagerecv->data);
-                continue;
-
             }
             else{
                     printf("ERROR IN TYPE PANICCC\n");
@@ -581,12 +597,5 @@ int main(int argc, char **argv){
     free(loggedList_mutex);
     for(int i = 0; userList[i]; i++)
         free(userList[i]);
-    return -1;
-
-
-
-    
-
-    
-    
+    return -1;   
 }
