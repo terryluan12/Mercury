@@ -184,6 +184,7 @@ void *mainLoop(void *arg){
             }
             else if(type == LEAVE_SESS){
                 // If not in a session
+
                 if(sessionIDLoc == -1)
                     strcpy(messagesend->data, "NOT IN SESSION CURRENTLY. UNEXPECTED!");
                 int i, j;
@@ -192,7 +193,7 @@ void *mainLoop(void *arg){
                 pthread_mutex_lock(sessionList_mutex);
                     i = 0;
                     // Get the location of the user, and free it
-                    while(strcmp(sessionList[sessionIDLoc]->users[i]->id, mainUser->id) == 0)
+                    while(strcmp(sessionList[sessionIDLoc]->users[i]->id, mainUser->id) != 0)
                         i++;
                     free(sessionList[sessionIDLoc]->users[i]);
 
@@ -204,7 +205,6 @@ void *mainLoop(void *arg){
                     sessionList[sessionIDLoc]->users[i] = NULL;
                 pthread_mutex_unlock(sessionList_mutex);
                 sessionIDLoc = -1;
-                loggedIn = 0;
 
                 printf("User left session successfully\n");
                 continue;

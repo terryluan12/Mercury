@@ -12,6 +12,7 @@
 
 static const char *mainmenu[] = {
     "Possible Commands                                      ",
+    "/register <username> <password>                        ",
 	"/login <client ID> <password> <server-IP> <server-port>",
 	"/logout                                                ",
 	"/joinsession <session ID>                              ",
@@ -28,6 +29,7 @@ static const char *mainmenu[] = {
 pthread_t thread;
 void *returnVal;
 char userName[MAX_NAME];
+int inSession = 0;
 
 void list(int *sockfd) {
     if(*sockfd == -1){
@@ -43,7 +45,6 @@ void list(int *sockfd) {
     strncpy(message->source, userName, MAX_NAME);
 
     messageToString(buf, message);
-
     free(message);
 
     int numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
@@ -54,25 +55,20 @@ void list(int *sockfd) {
 }
 
 void login(char *msg, int *sockfd){
-    char clientID[MAX_NAME], password[100], serverIP[15], serverPort[10];
+    char *clientID, *password, *serverIP, *serverPort;
     int numbytes;
     char buf[MAXBUFLEN];
 
-    msg = strtok(NULL, " ");
-    strcpy(clientID, msg);
-    strcpy(userName, clientID);
+    clientID = strtok(NULL, " ");
 
-    msg = strtok(NULL, " ");
-    strcpy(password, msg);
+    password = strtok(NULL, " ");
 
-    msg = strtok(NULL, " ");
-    strcpy(serverIP, msg);
+    serverIP = strtok(NULL, " ");
 
-    msg = strtok(NULL, " ");
-    strcpy(serverPort, msg);
+    serverPort = strtok(NULL, " ");
 
-    if(clientID == NULL || password == NULL || serverIP == NULL || serverPort == NULL){
-        printf("ERROR OCCURED WITH LOGIN.\n");
+    if(!userName || !password || !serverIP || !serverPort){
+        printf("Incorrect Usage.\nMust be in the form /login <client ID> <password> <server-IP> <server-port>\n");
         return;
     }else if(*sockfd != -1){
         printf("ALREADY LOGGED INTO SERVER\n");
@@ -80,6 +76,7 @@ void login(char *msg, int *sockfd){
     }
     else{
         
+        printf("ID is %s, pw is %s, IP is %s, Port is %s\n", clientID, password, serverIP, serverPort);
         struct addrinfo hints, *servinfo;
         struct sockaddr_storage their_addr;
         struct sockaddr_in *return_addr;
@@ -114,13 +111,14 @@ void login(char *msg, int *sockfd){
         struct message *message = malloc(sizeof(struct message));
         message->type = LOGIN;
 
-        strncpy(message->source, userName, MAX_NAME);
+        strncpy(message->source, clientID, MAX_NAME);
         strncpy(message->data, password, MAX_DATA);
         message->size = strlen(message->data);
+
         messageToString(buf, message);
-        
         free(message);
 
+        printf("Logging in...\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
         if(numbytes == -1){
             printf("COULDN'T SEND TO SERVER\n");
@@ -149,13 +147,15 @@ void logout(int *sockfd){
         return;
     }
 
-    struct message *message;
+    struct message *message = malloc(sizeof(struct message));
 
     message->type = EXIT;
     message->size = 0;
     strncpy(message->source, userName, MAX_NAME);
     messageToString(buf, message);
+    free(message);
 
+    printf("Logging out...\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
     if(numbytes == -1){
@@ -172,26 +172,33 @@ void joinsess(int *sockfd, char *sessID){
     char buf[MAXBUFLEN];
     int numbytes;
     sessID = strtok(NULL, " ");
+    
+    if(!sessID){
+        printf("Incorrect Usage.\nMust be in the form /joinsession <session ID>\n");
+        return;
+    }
     if(*sockfd == -1){
         printf("Not currently logged in.\n");
         return;
     }
 
    
-    struct message *message;
+    struct message *message = malloc(sizeof(struct message));
     message->type = JOIN;
     strncpy(message->data, sessID, MAX_DATA);
     message->size = strlen(message->data);
     strncpy(message->source, userName, MAX_NAME);
-    messageToString(buf, message);
 
+    messageToString(buf, message);
+    free(message);
+
+    printf("Joining Session...\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
     if(numbytes == -1){
         printf("SEND ERROR\n");
         return;
     }
 
-    
     
 }
 
@@ -203,22 +210,27 @@ void leavesess(int *sockfd){
         printf("Not currently logged in.\n");
         return;
     }
-    printf("Leaving Session...\n");
+    if(!inSession){
+        printf("Must be in a session to leave session\n");
+        return;
+    }
 
-    struct message *message;
+    struct message *message = malloc(sizeof(struct message));
     message->type = LEAVE_SESS;
     message->size = 0;
     strncpy(message->source, userName, MAX_NAME);
 
     messageToString(buf, message);
+    free(message);
 
+    printf("Leaving Session...\n");
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
-
     if(numbytes == -1){
         printf("ERROR WITH SENDING CREATE\n");
         return;
     }
 
+    inSession = 0;
 }
 
 void createsess(int *sockfd, char *sessID){
@@ -226,18 +238,27 @@ void createsess(int *sockfd, char *sessID){
     char buf[MAXBUFLEN];
     int numbytes;
     sessID = strtok(NULL, " ");
+
+    if(!sessID){
+        printf("Incorrect Usage.\nMust be in the form /createsession <session ID>\n");
+        return;
+    }
+
     if(*sockfd == -1){
         printf("Not currently logged in.\n");
         return;
     }
 
-    struct message *message;
+    struct message *message = malloc(sizeof(struct message));
     message->type = NEW_SESS;
     message->size = 0;
     strcpy(message->data, sessID);
     strncpy(message->source, userName, MAX_NAME);
 
     messageToString(buf, message);
+    free(message);
+
+    printf("Creating Session...\n");
 
     numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
 
@@ -255,6 +276,11 @@ void message(int *sockfd, char *msg){
         return;
     }
 
+    if(!inSession){
+        printf("Must be in a session to send a message\n");
+        return;
+    }
+
     struct message *message = malloc(sizeof(struct message));
     message->type = MESSAGE;
 
@@ -263,6 +289,9 @@ void message(int *sockfd, char *msg){
     strncpy(message->source, userName, MAX_NAME);
 
     messageToString(buf, message);
+    free(message);
+
+    printf("Sending Message to Session");
 
     numbytes = send(*sockfd, buf, MAXBUFLEN - 1, 0);
 
@@ -276,13 +305,17 @@ void reg(int *socketfd, char *regInfo){
     char buf[MAXBUFLEN];
     int numbytes;
 
-    if(*sockfd == -1){
+    if(*socketfd == -1){
         printf("Not currently logged in.\n");
         return;
     }
 
     char *newUserName = strtok(NULL, " ");
     char *newPassword = strtok(NULL, "\0");
+
+    if(!newUserName || !newPassword){
+        printf("Incorrect Usage.\nMust be in the form /register <username> <password>\n");
+    }
     struct message *message = malloc(sizeof(struct message));
 
     message->type = REGISTER;
@@ -291,10 +324,12 @@ void reg(int *socketfd, char *regInfo){
     strncpy(message->source, userName, MAX_NAME);
     
     messageToString(buf, message);
+    free(message);
+
+    printf("Registering new User...\n");
 
     numbytes = send(*socketfd, buf, MAXBUFLEN - 1, 0);
     
-
     if(numbytes == -1){
         printf("ERROR WITH SEND\n");
         return;
@@ -334,6 +369,7 @@ void *textsession(void *socketfd) {
         }
         else if(message->type == LO_ACK){
             printf("User now logged in\n");
+            strcpy(userName, message->source);
         }
         else if (message->type == LO_NAK) {
             printf("login failed: %s\n", message->data);
@@ -343,9 +379,11 @@ void *textsession(void *socketfd) {
         }
         else if(message->type == JN_ACK){
             printf("Successfully joined session\n");
+            inSession = 1;
         }
         else if (message->type == JN_NAK) {
             printf("Join session failed: %s\n", message->data);
+            inSession = 0;
         }
         else if(message->type == NS_ACK){
             printf("New session Created\n");
@@ -358,4 +396,5 @@ void *textsession(void *socketfd) {
         }
         
 	}
+    free(message);
 }
