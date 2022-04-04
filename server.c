@@ -116,7 +116,7 @@ void *mainLoop(void *arg){
                 char tempInfo[MAX_DATA];
                 fptr = fopen("users.txt", "a");
 
-                sprintf(tempInfo, "%s %s" messagerecv -> source, messagerecv->data);
+                sprintf(tempInfo, "%s %s", messagerecv -> source, messagerecv->data);
                 fprintf(fptr, "\n%s", tempInfo);
                 fclose(fptr);
                 sscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
@@ -126,7 +126,7 @@ void *mainLoop(void *arg){
                 userList[i+1] = NULL;
 
                 printf("Successfully added %s\n", messagerecv->data);
-				loggedin = 1;
+				loggedIn = 1;
                 continue;
             }else{
                 messagesend->type = LO_NAK;

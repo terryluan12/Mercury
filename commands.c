@@ -481,21 +481,18 @@ void *textsession(void *socketfd) {
         else if(message->type == KICK_NAK){
             printf("%s\n", message->data);
         }
-<<<<<<< HEAD
         else if(message->type == ADDMIN_ACK){
             printf("User successfully added as admin\n");
         }
         else if(message->type == ADDMIN_NAK){
             printf("%s\n", message->data);
         }
-        else if(message->type == -1){
-            printf("UNEXPECTED ERROR: %s", message->data);
-        }
-=======
 		else if(message->type == USERKICK) {
 			printf("You have been kicked from the session\n");
 		}
->>>>>>> 297ebdef2a79df665ceee4d6ba42f8372881a2af
+        else if(message->type == -1){
+            printf("UNEXPECTED ERROR: %s", message->data);
+        }
         else{
             printf("UNKNOWN PACKET RECEIVED\n");
             close(*sockfd);

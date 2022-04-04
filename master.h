@@ -53,7 +53,6 @@ void createsess(int *sockfd, char *sessID);
 void kick(int *sockfd);
 void addmin(int *sockfd);
 void list(int *socketfd);
-void reg(int *socketfd, char *regInfo);
 
 void stringToMessage(char* str, struct message *msg);
 void messageToString(char* str, struct message *msg);
