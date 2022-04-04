@@ -42,6 +42,8 @@ void *mainLoop(void *arg){
             return returnval;
         }
         buf[numbytes] = '\0';
+        
+        printf("buf: '%s'\n", buf);
 
         // turn it into a string, input it into messagerecv and mainuser
         stringToMessage(buf, messagerecv);
@@ -121,6 +123,7 @@ void *mainLoop(void *arg){
                     if(strcmp(userList[i]->id, mainUser->id) == 0){
                         //invalid reg info
                         messagesend->type = REG_NACK;
+                        strcpy(messagesend->data, "Invalid login info");
                         goto noreg;
                     }
                 }
@@ -468,7 +471,7 @@ noreg:
         if(numbytes == -1){
             printf("ERROR IN SENDING");
         }
-        if(messagesend->type == LO_NAK)
+        if(messagesend->type == LO_NAK || messagesend -> type == REG_NACK)
             break;
         free(messagerecv);
         free(messagesend);
