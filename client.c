@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         com = strtok(buf, " ");
 
         if(strcmp(com, LOGINCMD) == 0){
-            login(com, sockfd);
+            login(com, sockfd, 1);
         }
         else if(strcmp(com, LOGOUTCMD) == 0){
             logout(sockfd);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         else if(strcmp(com, REGCMD) == 0){
-            reg(sockfd, com);
+            reg(com, sockfd, 0);
         }
         else if(strcmp(com, "clear") == 0){
             system("clear");

@@ -57,7 +57,7 @@ void list(int *sockfd) {
     }
 }
 
-void login(char *msg, int *sockfd){
+void login(char *msg, int *sockfd, int login){
     char *clientID, *password, *serverIP, *serverPort;
     int numbytes;
     char buf[MAXBUFLEN];
@@ -111,7 +111,9 @@ void login(char *msg, int *sockfd){
         }
 
         struct message *message = malloc(sizeof(struct message));
-        message->type = LOGIN;
+        if (login)
+        	message->type = LOGIN;
+        else message -> type = REGISTER;
 
         strncpy(message->source, clientID, MAX_NAME);
         strncpy(message->data, password, MAX_DATA);
@@ -120,7 +122,10 @@ void login(char *msg, int *sockfd){
         messageToString(buf, message);
         free(message);
 
-        printf("Logging in...\n");
+        if (login)
+        	printf("Logging in...\n");
+        else
+        	printf("Registering...\n");
         numbytes = send(*sockfd, buf, MAXBUFLEN-1, 0);
         if(numbytes == -1){
             printf("COULDN'T SEND TO SERVER\n");
@@ -390,11 +395,6 @@ void reg(int *socketfd, char *regInfo){
     char buf[MAXBUFLEN];
     int numbytes;
 
-    if(*socketfd == -1){
-        printf("Not currently logged in.\n");
-        return;
-    }
-
     char *newUserName = strtok(NULL, " ");
     char *newPassword = strtok(NULL, "\0");
 
@@ -480,6 +480,9 @@ void *textsession(void *socketfd) {
         else if(message->type == KICK_NAK){
             printf("%s\n", message->data);
         }
+		else if(message->type == USERKICK) {
+			printf("You have been kicked from the session\n");
+		}
         else{
             printf("UNKNOWN PACKET RECEIVED\n");
             close(*sockfd);
