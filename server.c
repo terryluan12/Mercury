@@ -126,11 +126,11 @@ void *mainLoop(void *arg){
                     int inSession = 0;
                     int isValidSession = 0;
                     int i;
-                    int sessionID = atoi(messagerecv->data);
+                    int sessionID = -1;
                     
                     // Check if is a valid session
                     for(int i = 0; sessionList[i]; i++){
-                        if(strcmp(sessionID,sessionList[i]->sessionID) == 0){
+                        if(strcmp(messagerecv->data,sessionList[i]->sessionID) == 0){
                             printf("Valid session\n");
                             isValidSession = 1;
                             sessionID = i;
@@ -291,9 +291,24 @@ void *mainLoop(void *arg){
                 strcpy(messagesend->data, query);
                 messagesend->size = sizeof(query);
                 messagesend->type = QU_ACK;
-            }else{
-                printf("ERROR IN TYPE PANICCC\n");
             }
+            else if(type == REGISTER){
+                printf("Trying to register %s\n", messagerecv->data);
+                FILE *fptr;
+                char tempInfo[MAX_DATA];
+                fptr = fopen("users.txt", "a");
+
+                strcpy(tempInfo, messagerecv->data);
+                fprintf(fptr, "\n%s", tempInfo);
+                fclose(fptr);
+
+                printf("Successfully added %s\n", messagerecv->data);
+                continue;
+
+            }
+            else{
+                    printf("ERROR IN TYPE PANICCC\n");
+                }
         }
 
 

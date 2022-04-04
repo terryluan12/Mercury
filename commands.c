@@ -255,7 +255,7 @@ void message(int *sockfd, char *msg){
         return;
     }
 
-    struct message *message;
+    struct message *message = malloc(sizeof(struct message));
     message->type = MESSAGE;
 
     strncpy(message->data, msg, MAX_DATA);
@@ -271,6 +271,38 @@ void message(int *sockfd, char *msg){
         return;
     }
 }
+
+void reg(int *socketfd, char *regInfo){
+    char buf[MAXBUFLEN];
+    int numbytes;
+
+    if(*sockfd == -1){
+        printf("Not currently logged in.\n");
+        return;
+    }
+
+    char *newUserName = strtok(NULL, " ");
+    char *newPassword = strtok(NULL, "\0");
+    struct message *message = malloc(sizeof(struct message));
+
+    message->type = REGISTER;
+    message->size = strlen(newUserName) + 1 + strlen(newPassword);
+    sprintf(message->data, "%s : %s", newUserName, newPassword);
+    strncpy(message->source, userName, MAX_NAME);
+    
+    messageToString(buf, message);
+
+    numbytes = send(*socketfd, buf, MAXBUFLEN - 1, 0);
+    
+
+    if(numbytes == -1){
+        printf("ERROR WITH SEND\n");
+        return;
+    }
+
+}
+
+
 
 
 void printmenu(){

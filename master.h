@@ -14,7 +14,7 @@
 #define MAXNUMSESSIONS 3
 
 enum cmd {LOGIN, LO_ACK, LO_NAK, EXIT, JOIN, JN_ACK, JN_NAK,
-		  LEAVE_SESS, NEW_SESS, NS_ACK, MESSAGE, QUERY, QU_ACK };
+		  LEAVE_SESS, NEW_SESS, REGISTER, NS_ACK, MESSAGE, QUERY, QU_ACK };
 
 
 struct message {
@@ -51,6 +51,7 @@ void joinsess(int *sockfd, char *sessID);
 void leavesess(int *sockfd);
 void createsess(int *sockfd, char *sessID);
 void list(int *socketfd);
+void reg(int *socketfd, char *regInfo);
 
 void stringToMessage(char* str, struct message *msg);
 void messageToString(char* str, struct message *msg);

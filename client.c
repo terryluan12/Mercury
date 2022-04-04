@@ -14,7 +14,7 @@ const char *LEAVECMD = "/leavesession";
 const char *CREATECMD = "/createsession";
 const char *LISTCMD = "/list";
 const char *QUITCMD = "/quit";
-
+const char *REGCMD = "/register";
 
 
 int main(int argc, char *argv[]) {
@@ -75,6 +75,10 @@ int main(int argc, char *argv[]) {
             printf("Quitting...\n");
             logout(sockfd);
             break;
+        }
+        else if(strcmp(com, REGCMD) == 0){
+            printf("Registering new User...\n");
+            reg(sockfd, com);
         }
         else if(strcmp(com, "clear") == 0){
             system("clear");
