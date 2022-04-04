@@ -293,7 +293,9 @@ void *mainLoop(void *arg){
                 messagesend->type = QU_ACK;
             }
             else if(type == REGISTER){
+                struct user *tempUser = malloc(sizeof(struct user));
                 printf("Trying to register %s\n", messagerecv->data);
+                int i = 0;
                 FILE *fptr;
                 char tempInfo[MAX_DATA];
                 fptr = fopen("users.txt", "a");
@@ -301,6 +303,11 @@ void *mainLoop(void *arg){
                 strcpy(tempInfo, messagerecv->data);
                 fprintf(fptr, "\n%s", tempInfo);
                 fclose(fptr);
+                fscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
+                while(userList[i])
+                    i++;
+                userList[i] = tempUser;
+                userList[i+1] = NULL;
 
                 printf("Successfully added %s\n", messagerecv->data);
                 continue;
