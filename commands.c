@@ -473,12 +473,22 @@ void *textsession(void *socketfd) {
         }
         else if(message->type == NS_ACK){
             printf("New session Created\n");
+            inSession = 1;
         }
         else if(message->type == KICK_ACK){
             printf("User Kicked\n");
         }
         else if(message->type == KICK_NAK){
             printf("%s\n", message->data);
+        }
+        else if(message->type == ADDMIN_ACK){
+            printf("User successfully added as admin\n");
+        }
+        else if(message->type == ADDMIN_NAK){
+            printf("%s\n", message->data);
+        }
+        else if(message->type == -1){
+            printf("UNEXPECTED ERROR: %s", message->data);
         }
         else{
             printf("UNKNOWN PACKET RECEIVED\n");

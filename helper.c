@@ -4,7 +4,7 @@
 #include "master.h"
 
 void stringToMessage(char* str, struct message *msg){
-    printf("recieving %s\n", str);
+    // printf("recieving %s\n", str);
     str = strtok(str, ":");
     msg->type = atoi(str);
 
@@ -19,13 +19,11 @@ void stringToMessage(char* str, struct message *msg){
     if(str != NULL)    
         strcpy(msg->data, str);
 
-    // printf("It is %d:%d:%s:%s\n", msg->type, msg->size, msg->source, msg->data);
 }
 
 
 void messageToString(char* str, struct message *msg){
-    // printf("Changing\n");
     int num_chars = sprintf(str, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
-    printf("got %s\n", str);
+    // printf("got %s\n", str);
 
 }
