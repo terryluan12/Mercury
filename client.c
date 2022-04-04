@@ -48,31 +48,31 @@ int main(int argc, char *argv[]) {
         com = strtok(buf, " ");
 
         if(strcmp(com, LOGINCMD) == 0){
-            printf("Logging in\n");
+            printf("Logging in...\n");
             login(com, sockfd);
         }
         else if(strcmp(com, LOGOUTCMD) == 0){
-            printf("Logging out\n");
+            printf("Logging out...\n");
             logout(sockfd);
         }
         else if(strcmp(com, JOINCMD) == 0){
-            printf("Joining\n");
+            printf("Joining Session...\n");
             joinsess(sockfd, com);
         }
         else if(strcmp(com, LEAVECMD) == 0){
-            printf("Leaving\n");
+            printf("Leaving...\n");
             leavesess(sockfd);
         }
         else if(strcmp(com, CREATECMD) == 0){
-            printf("Creating Session\n");
+            printf("Creating Session...\n");
             createsess(sockfd, com);
         }
         else if(strcmp(com, LISTCMD) == 0){
-            printf("Listing\n");
+            printf("Listing...\n");
             list(sockfd);
         }
         else if(strcmp(com, QUITCMD) == 0){
-            printf("Quitting\n");
+            printf("Quitting...\n");
             logout(sockfd);
             break;
         }

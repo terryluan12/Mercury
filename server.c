@@ -20,7 +20,6 @@ void *mainLoop(void *arg){
     struct user *mainUser = (struct user *)arg;
 
     char buf[MAXBUFLEN];
-    char id[MAXIDLEN];
     int type;
     int loggedIn = 0;
     int sessionIDLoc = -1;
@@ -46,7 +45,7 @@ void *mainLoop(void *arg){
 
         // turn it into a string, input it into messagerecv and mainuser
         stringToMessage(buf, messagerecv);
-        printf("listener: got packet, %d bytes long from \n", numbytes, mainUser->id);
+        printf("listener: got packet, %d bytes long from %s\n", numbytes, mainUser->id);
         type = messagerecv->type;
 
 
@@ -131,7 +130,7 @@ void *mainLoop(void *arg){
                     
                     // Check if is a valid session
                     for(int i = 0; sessionList[i]; i++){
-                        if(sessionID == sessionList[i]->sessionID){
+                        if(strcmp(sessionID,sessionList[i]->sessionID) == 0){
                             printf("Valid session\n");
                             isValidSession = 1;
                             sessionID = i;
@@ -150,12 +149,10 @@ void *mainLoop(void *arg){
                     }
 
                     if(!isValidSession){
-                        // TODO here too plzzz
                         messagesend->type = JN_NAK;
                         strcpy(messagesend->data, messagerecv->data);
-                        strcat(messagesend -> data, " Invalid session.");
+                        strcat(messagesend->data, " Invalid session.");
                     }else if(inSession){
-                        // TODO here too plzzz
                         messagesend->type = JN_NAK;
                         strcpy(messagesend->data, messagerecv->data);
                         strcat(messagesend -> data, " Session already joined.");
@@ -195,7 +192,7 @@ void *mainLoop(void *arg){
                 pthread_mutex_lock(sessionList_mutex);
                     i = 0;
                     // Get the location of the user, and free it
-                    while(sessionList[sessionIDLoc]->users[i]->id != mainUser->id)
+                    while(strcmp(sessionList[sessionIDLoc]->users[i]->id, mainUser->id) == 0)
                         i++;
                     free(sessionList[sessionIDLoc]->users[i]);
 
@@ -210,6 +207,7 @@ void *mainLoop(void *arg){
                 loggedIn = 0;
 
                 printf("User left session successfully\n");
+                continue;
             }
             else if(type == NEW_SESS){
                 // printf("Creating new Session\n");
@@ -220,7 +218,7 @@ void *mainLoop(void *arg){
                 
                 // create temp Session to insert into list
                 struct session *tempSession = malloc(sizeof(struct session));
-                tempSession->sessionID = atoi(messagerecv->data);
+                strcpy(tempSession->sessionID, messagerecv->data);
                 tempSession->users[0] = NULL;
 
                 pthread_mutex_lock(sessionList_mutex);
@@ -233,23 +231,22 @@ void *mainLoop(void *arg){
 
                 
                 messagesend->type = NS_ACK;
-                printf("Created new session %d.\n",sessionList[i]->sessionID);
+                printf("Created new session %s.\n",sessionList[i]->sessionID);
 
             }else if(type == MESSAGE){
                 int numbytes;
 
                 messagesend->type = MESSAGE;
-
-                memcpy(messagesend->source, mainUser->id, MAX_NAME);
+                strcpy(messagesend->source, mainUser->id);
                 messagesend->size = strlen(messagesend->data);
-                memcpy(messagesend->data, messagerecv->data, MAX_DATA);
+                strcpy(messagesend->data, messagerecv->data);
+                
 
 
                 messageToString(buf, messagesend);
 
                 for(int i = 0; sessionList[sessionIDLoc]->users[i]; i++){
-                    printf("On %d", i);
-                    if(sessionList[sessionIDLoc]->users[i]->id == mainUser->id)
+                    if(strcmp(sessionList[sessionIDLoc]->users[i]->id, mainUser->id) == 0)
                         continue;
                     numbytes = send(sessionList[sessionIDLoc]->users[i]->sockfd, buf, MAXBUFLEN - 1, 0);
                     if(numbytes == -1){
@@ -268,12 +265,12 @@ void *mainLoop(void *arg){
                 strcat(query, "Sessions active:\n");
                 for(int i = 0; sessionList[i]; i++){
                     strcat(query, "Session: ");
-                    sprintf(tempStr, "%d", sessionList[i]->sessionID);
+                    sprintf(tempStr, "%s", sessionList[i]->sessionID);
                     strcat(query, tempStr);
                     strcat(query, "\n");
                     for(int j = 0; sessionList[i]->users[j]; j++){
                         strcat(query, "\tUser: ");
-                        sprintf(tempStr, "%d", sessionList[i]->users[j]->id);
+                        sprintf(tempStr, "%s", sessionList[i]->users[j]->id);
                         strcat(query, tempStr);
                         strcat(query, "\n");
                     }
@@ -300,7 +297,7 @@ void *mainLoop(void *arg){
         }
 
 
-        memcpy(messagesend->source, mainUser->id, MAX_NAME);
+        strcpy(messagesend->source, mainUser->id);
         messagesend->size = strlen(messagesend->data);
         memset(buf, 0, MAXBUFLEN);
         messageToString(buf, messagesend);
@@ -320,37 +317,40 @@ void *mainLoop(void *arg){
 
     int i;
     if(loggedIn){
-        printf("Logging out\n");
+        printf("Logging out...\n");
         pthread_mutex_lock(sessionList_mutex);
             // Get the location of the user, and free it
             i = 0;
-            while(sessionList[sessionIDLoc]->users[i]->id != mainUser->id)
-                i++;
-            free(sessionList[sessionIDLoc]->users[i]);
+            if(sessionList[sessionIDLoc]){
+                while(sessionList[sessionIDLoc]->users[i]->id != mainUser->id)
+                    i++;
+                free(sessionList[sessionIDLoc]->users[i]);
 
-            // shift all the users left, so the "users" array is contiguous
-            while(sessionList[sessionIDLoc]->users[i+1] != NULL){
-                sessionList[sessionIDLoc]->users[i] = sessionList[sessionIDLoc]->users[i+1];
-                i++;
+                // shift all the users left, so the "users" array is contiguous
+                while(sessionList[sessionIDLoc]->users[i+1] != NULL){
+                    sessionList[sessionIDLoc]->users[i] = sessionList[sessionIDLoc]->users[i+1];
+                    i++;
+                }
+                sessionList[sessionIDLoc]->users[i] = NULL;
             }
-            sessionList[sessionIDLoc]->users[i] = NULL;
         pthread_mutex_unlock(sessionList_mutex);
-
         sessionIDLoc = -1;
         loggedIn = 0;
     }
 
     pthread_mutex_lock(loggedList_mutex);
         i = 0;
-        while(strcmp(loggedList[i]->id, mainUser->id) != 0)
-            i++;
-        free(loggedList[i]);
+        if(loggedList[i]){
+            while(strcmp(loggedList[i]->id, mainUser->id) != 0)
+                i++;
+            free(loggedList[i]);
 
-        while(loggedList[i+1] != NULL){
-            loggedList[i] = loggedList[i+1];
-            i++;
+            while(loggedList[i+1] != NULL){
+                loggedList[i] = loggedList[i+1];
+                i++;
+            }
+            loggedList[i] = NULL;
         }
-        loggedList[i] = NULL;
     pthread_mutex_unlock(loggedList_mutex);
 
     pthread_mutex_lock(numUsers_mutex);

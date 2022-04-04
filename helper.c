@@ -4,24 +4,18 @@
 #include "master.h"
 
 void stringToMessage(char* str, struct message *msg){
-    printf("recieving %s\n", str);
+    // printf("recieving %s\n", str);
     str = strtok(str, ":");
     msg->type = atoi(str);
 
-    // printf("PT 1\n");
-
     str = strtok(NULL, ":");
     msg->size = atoi(str);
-
-    // printf("PT 2\n");
 
     str = strtok(NULL, ":");
     if(str != NULL)
         strcpy(msg->source, str);
 
-    // printf("PT 4\n");
-
-    str = strtok(NULL, "");
+    str = strtok(NULL, "\0");
     if(str != NULL)    
         strcpy(msg->data, str);
 
@@ -32,6 +26,6 @@ void stringToMessage(char* str, struct message *msg){
 void messageToString(char* str, struct message *msg){
     // printf("Changing\n");
     int num_chars = sprintf(str, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
-    printf("got %s\n", str);
+    // printf("got %s\n", str);
 
 }
