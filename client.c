@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         else if(strcmp(com, REGCMD) == 0){
-            reg(com, sockfd, 0);
+            login(com, sockfd, 0);
         }
         else if(strcmp(com, "clear") == 0){
             system("clear");

@@ -483,6 +483,15 @@ void *textsession(void *socketfd) {
 		else if(message->type == USERKICK) {
 			printf("You have been kicked from the session\n");
 		}
+		else if(message->type == REG_ACK) {
+			printf("Registration successful\n");
+		}
+		else if(message->type == REG_NACK) {
+			printf("Registration failed! Please pick another username.\n");
+			close(*sockfd);
+            *sockfd = -1;
+            return returnVal;
+		}
         else{
             printf("UNKNOWN PACKET RECEIVED\n");
             close(*sockfd);

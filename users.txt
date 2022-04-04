@@ -1,3 +1,6 @@
 admin : password
 admin1 : password1
 user : password
+sona : woo
+
+mona : dodo

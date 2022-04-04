@@ -109,25 +109,52 @@ void *mainLoop(void *arg){
                 }
 			}
 			else if(type == REGISTER){
-                struct user *tempUser = malloc(sizeof(struct user));
+                struct user *tempUser1 = malloc(sizeof(struct user));
                 printf("Trying to register %s\n", messagerecv->data);
                 int i = 0;
+
+				strcpy(mainUser->id, messagerecv->source);
+                strcpy(mainUser->password, messagerecv->data);
+
+				// iterate through userList and check if the registration info is valid
+                for(int i = 0; userList[i]; i++){
+                    if(strcmp(userList[i]->id, mainUser->id) == 0){
+                        //invalid reg info
+                        messagesend->type = REG_NACK;
+                        goto noreg;
+                    }
+                }
+
                 FILE *fptr;
                 char tempInfo[MAX_DATA];
                 fptr = fopen("users.txt", "a");
 
-                sprintf(tempInfo, "%s %s" messagerecv -> source, messagerecv->data);
+
+                sprintf(tempInfo, "%s : %s", messagerecv -> source, messagerecv->data);
                 fprintf(fptr, "\n%s", tempInfo);
                 fclose(fptr);
-                sscanf(messagerecv->data, "%s : %s\n", tempUser->id, tempUser->password);
+                memcpy(tempUser1, mainUser, sizeof(struct user));
                 while(userList[i])
                     i++;
-                userList[i] = tempUser;
+                userList[i] = tempUser1;
                 userList[i+1] = NULL;
 
-                printf("Successfully added %s\n", messagerecv->data);
-				loggedin = 1;
-                continue;
+				// create new copy of the user to insert into loggedList
+                struct user *tempUser = malloc(sizeof(struct user));
+                memcpy(tempUser, mainUser, sizeof(struct user));
+
+                // Insert into loggedList
+                pthread_mutex_lock(loggedList_mutex);
+                pthread_mutex_lock(numUsers_mutex);
+                loggedList[numUsers-1] = tempUser;
+                loggedList[numUsers] = NULL;
+                pthread_mutex_unlock(numUsers_mutex);
+                pthread_mutex_unlock(loggedList_mutex);
+
+                // Update message to send
+                messagesend->type = REG_ACK;
+                loggedIn = 1;
+                printf("Successfully registered %s\n", mainUser -> id);
             }else{
                 messagesend->type = LO_NAK;
                 strcpy(messagesend->data, "Not logged in.");
@@ -398,7 +425,7 @@ void *mainLoop(void *arg){
                 }
         }
 
-
+noreg:
         strcpy(messagesend->source, mainUser->id);
         messagesend->size = strlen(messagesend->data);
         memset(buf, 0, MAXBUFLEN);
