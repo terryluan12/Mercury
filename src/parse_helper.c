@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "master.h"
+#include "../include/master.h"
 
 void stringToMessage(char* str, struct message *msg){
     // printf("recieving %s\n", str);

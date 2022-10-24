@@ -1,9 +1,16 @@
 CC=gcc
-CFLAGS=-g
-all: server client
-server: server.c
-		gcc -pthread -o server server.c helper.c
-client: client.c
-		gcc -pthread -o client client.c commands.c helper.c
+CFLAGS=-pthread -o 
+DIRS = src
+TARGET=target
+
+HELP_FILES=src/*_helper.c
+all: target server client
+
+$(TARGET): 
+		mkdir -p $(TARGET)
+server: $(DIRS)/server.c
+		$(CC) $(CFLAGS) $(TARGET)/$@.exe $? $(HELP_FILES) 
+client: $(DIRS)/client.c
+		$(CC) $(CFLAGS) $(TARGET)/$@.exe $? $(HELP_FILES)
 clean:
-	rm -f *.o  server client
+	rm -f $(TARGET)

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
-#include "master.h"
+#include "../include/master.h"
 //yolo
 
 struct user *userList[MAXNUMUSERS+1], *loggedList[MAXLOGGEDINUSERS+1];
@@ -130,7 +130,7 @@ void *mainLoop(void *arg){
 
                 FILE *fptr;
                 char tempInfo[MAX_DATA];
-                fptr = fopen("users.txt", "a");
+                fptr = fopen("data/users.txt", "a");
 
 
                 sprintf(tempInfo, "%s : %s", messagerecv -> source, messagerecv->data);
@@ -583,7 +583,7 @@ int main(int argc, char **argv){
 
     // Opening the list of possible users.
     FILE *fptr;
-    fptr = fopen("users.txt", "r");
+    fptr = fopen("data/users.txt", "r");
 
     // iterate through the userlist and add them to 
     i = 0;

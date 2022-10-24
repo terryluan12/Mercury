@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "master.h"
+#include "../include/master.h"
 #include <pthread.h>
 
 
