@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include "../include/master.h"
+#include "../include/global.h"
 #include <pthread.h>
 
 

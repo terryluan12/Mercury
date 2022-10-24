@@ -7,7 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
-#include "../include/master.h"
+#include "../include/global.h"
 //yolo
 
 struct user *userList[MAXNUMUSERS+1], *loggedList[MAXLOGGEDINUSERS+1];

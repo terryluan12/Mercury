@@ -1,17 +1,17 @@
 CC=gcc
-CFLAGS=-pthread -o 
+CFLAGS=-o
 
 DIRS = src
 TARGET=target
-HELP_FILES=src/*_helper.c
+
 
 all: $(TARGET) server client
 
 $(TARGET): 
 		mkdir -p $(TARGET)
 server: $(DIRS)/server.c
-		$(CC) $(CFLAGS) $(TARGET)/$@.exe $? $(HELP_FILES) 
+		$(CC) $(CFLAGS) $(TARGET)/$@.exe $?
 client: $(DIRS)/client.c
-		$(CC) $(CFLAGS) $(TARGET)/$@.exe $? $(HELP_FILES)
+		$(CC) $(CFLAGS) $(TARGET)/$@.exe $?
 clean:
 	rm -f $(TARGET)

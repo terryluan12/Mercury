@@ -1,3 +1,6 @@
+#ifndef GLOBAL_H_
+#define GLOBAL_H_
+
 struct packet {
 	unsigned int total_frag;
 	unsigned int frag_no;
@@ -11,3 +14,5 @@ struct node {
 	struct node * next = nullptr;
 	int num_bytes;
 };
+
+#endif

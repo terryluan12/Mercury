@@ -1,5 +1,5 @@
-#ifndef MASTER_H_
-#define MASTER_H_
+#ifndef GLOBAL_H_
+#define GLOBAL_H_
 #include <assert.h>
 
 
