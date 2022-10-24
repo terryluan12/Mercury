@@ -6,19 +6,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include "../include/global.h"
 
 
 #define MAXBUFLEN 256
 #define MAXPACKET 2000
 
 
-struct packet {
-	unsigned int total_frag;
-	unsigned int frag_no;
-	unsigned int size;
-	char* filename;
-	char filedata[1000];
-};
 
 /*
  * Function: server <UDP listen port>

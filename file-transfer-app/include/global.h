@@ -11,7 +11,7 @@ struct packet {
 
 struct node {
 	char data[1000];
-	struct node * next = nullptr;
+	struct node * next;
 	int num_bytes;
 };
 

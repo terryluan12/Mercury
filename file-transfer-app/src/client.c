@@ -6,12 +6,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include "../include/global.h"
 
-struct node {
-	char data[1000];
-	struct node * next;
-	int num_bytes;
-};
+
 
 #define MAXBUFLEN 100
 #define ALPHA 0.125
